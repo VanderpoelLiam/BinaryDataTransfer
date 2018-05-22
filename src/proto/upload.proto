@@ -1,0 +1,100 @@
+syntax = "proto3";
+// TODO install protocol buffer to get imports to compile
+// https://github.com/google/protobuf/releases/tag/v3.5.1
+//import "google/protobuf/timestamp.proto";
+//import "google/protobuf/any.proto";
+
+/* Causes top-level messages, enums, and services to be defined at the package
+   level, rather than inside an outer class named after the .proto file
+*/
+option java_multiple_files = true;
+
+// Define package name
+option java_package = "io.grpc.upload";
+
+// Define class name
+option java_outer_classname = "Upload";
+
+package upload;
+
+
+// Interfaces exported by the server.
+service Upload {
+    // Creates a Blob with specs matching those in BlobSpec.
+    // DeviceResponse contains the created Blob in its Payload OR it changes
+    // the ErrorStatus if there is not enough space to create the Blob of the
+    // given size.
+    rpc CreateBlob (BlobSpec) returns (DeviceResponse) {}
+
+    // Uploads a Chunk to the server
+    // DeviceResponse updates the ExpirationTime in its Payload OR it changes
+    // the ErrorStatus if it fails to upload a chunk
+    rpc UploadChunk (Chunk) returns (DeviceResponse) {}
+
+    // Performs an action on Blob associated with BlobId. DeviceResponse
+    // contains a confirmation message OR it changes the ErrorStatus if an issue
+    // occurs.
+    rpc Command (BlobId) returns (DeviceResponse) {}
+
+    // Deletes the Blob associated with BlobId. DeviceResponse contains a
+    // confirmation message OR it changes the ErrorStatus if an issue occurs.
+    rpc DeleteBlob (BlobId) returns (DeviceResponse) {}
+}
+
+// Messages used by above services
+message BlobSpec {
+    // Size of Blob in bits
+    int32 blobSize = 1;
+
+    // Number of Chunks to divide Blob into for transmission
+    int32 chunkCount = 2;
+}
+
+message Blob {
+    BlobId id = 1;
+
+    // When the BlobID is going to be rendered invalid, i.e. the client can not
+    // upload any more chunks to this BlobID and can not expect it to be
+    // useful for commands
+    ExpirationTime expiration = 2;
+}
+
+message BlobId {
+    int32 id = 1;
+}
+
+message ExpirationTime {
+    // TODO use following
+    // google.protobuf.Timestamp time = 1;
+    int32 time = 1;
+}
+
+message Chunk {
+    // Id of Blob we are uploading
+    BlobId id = 1;
+
+    // Index from 0 to chunkCount (in BlobSpec) of Chunk being uploaded
+    int32 index = 2;
+
+    // Data being uploaded
+    bytes payload = 3;
+}
+
+message DeviceResponse {
+    string message = 1;
+
+    ErrorStatus error = 2;
+
+    // Data to be sent to client
+    // TODO use following
+    // google.protobuf.Any payload = 3;
+    int32 payload = 3;
+}
+
+message ErrorStatus {
+    // Flag is set to True if an error occurs, and set to False otherwise.
+    bool errorFlag = 1;
+
+    // Description of error
+    string description = 2;
+}

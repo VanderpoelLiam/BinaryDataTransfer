@@ -28,16 +28,12 @@ service Upload {
     // the ErrorStatus if it fails to upload a chunk
     rpc UploadChunk (Chunk) returns (DeviceResponse) {}
 
-//    TODO figure out 4 different commands
-
-//    // Performs an action on Blob associated with BlobId. DeviceResponse
-//    // contains a confirmation message OR it changes the ErrorStatus if an issue
-//    // occurs.
-//    rpc Command (BlobId) returns (DeviceResponse) {}
-
     // Deletes the Blob associated with BlobId. DeviceResponse contains a
     // confirmation message OR it changes the ErrorStatus if an issue occurs.
     rpc DeleteBlob (BlobId) returns (DeviceResponse) {}
+
+    // Performs a pre-defined analysis on the Blob associated with BlobId.
+    rpc PerformAnalysis (BlobId) returns (DeviceResponse) {}
 }
 
 service Download {
@@ -46,6 +42,10 @@ service Download {
 
     // Gets the Chunk specified by ChunkSpec
     rpc GetChunk (ChunkSpec) returns (DeviceResponse)
+
+    // Performs the Action specified which generates a Blob. Then returns the
+    // associated BlobId.
+    rpc PerformAction (Action) returns (DeviceResponse)
 }
 
 // Messages used by above services
@@ -126,4 +126,9 @@ message ErrorStatus {
 
     // Description of error
     string description = 2;
+}
+
+message Action {
+    // Specifies the desired action
+    int32 action = 1;
 }

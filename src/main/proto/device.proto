@@ -30,8 +30,9 @@ service Upload {
     // confirmation message OR it changes the ErrorStatus if an issue occurs.
     rpc DeleteBlob (BlobId) returns (DeviceResponse);
 
-    // Performs a pre-defined analysis on the Blob associated with BlobId.
-    rpc PerformAnalysis (BlobId) returns (DeviceResponse);
+    // Performs a pre-defined analysis on the Blob associated with BlobId. In
+    // this case it gets the average brightness of an image.
+    rpc GetAverageBrightness (BlobId) returns (DeviceResponse);
 }
 
 service Download {
@@ -41,9 +42,9 @@ service Download {
     // Gets the Chunk specified by ChunkSpec
     rpc GetChunk (ChunkSpec) returns (DeviceResponse);
 
-    // Performs the Action specified which generates a Blob. Then returns the
-    // associated BlobId.
-    rpc PerformAction (Action) returns (DeviceResponse);
+    // Performs an Action which generates a Blob. Then returns the associated
+    // BlobId. In this case it gets the measurement data of the device.
+    rpc GetMeasurementData (Empty) returns (DeviceResponse);
 }
 
 // Messages used by above services
@@ -79,6 +80,7 @@ message BlobId {
 }
 
 message ExpirationTime {
+    // Time until when the server will store the Blob
     google.protobuf.Timestamp time = 1;
 }
 
@@ -122,7 +124,6 @@ message ErrorStatus {
     string description = 2;
 }
 
-message Action {
-    // Specifies the desired action
-    int32 action = 1;
+message Empty {
+
 }

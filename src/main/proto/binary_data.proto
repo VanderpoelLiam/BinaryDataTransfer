@@ -2,15 +2,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
 
-/* Causes top-level messages, enums, and services to be defined at the package
-   level, rather than inside an outer class named after the .proto file
-*/
-option java_multiple_files = true;
-
-// Define class name
-option java_outer_classname = "Device";
-
-package device;
+package binaryData;
 
 
 // Interfaces exported by the server.
@@ -45,6 +37,29 @@ service Download {
     // Performs an Action which generates a Blob. Then returns the associated
     // BlobId. In this case it gets the measurement data of the device.
     rpc GetMeasurementData (Empty) returns (DeviceResponse);
+}
+
+service FileServer {
+    // Checks if a blob of specified by BlobSpec can be stored on the server.
+    rpc ValidateFileServer (BlobSpec) returns (Validation);
+
+    // Saves the Blob to the server, then returns the error status.
+    rpc Save (Blob) returns (ErrorStatus);
+
+    // Deletes the Blob with given BlobId, then returns the error status.
+    rpc Delete (BlobId) returns (ErrorStatus);
+
+    // Downloads the Blob with given BlobId, then returns the error status.
+    rpc Download (BlobId) returns (ErrorStatus);
+}
+
+message Validation {
+    // Flag is set to True if the specified blob can be stored, and set to
+    // False otherwise.
+    bool wasSuccess = 1;
+
+    // Time until when the server will store the Blob specified.
+    ExpirationTime expiration = 2;
 }
 
 // Messages used by above services

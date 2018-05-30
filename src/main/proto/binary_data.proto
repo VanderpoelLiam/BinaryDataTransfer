@@ -49,8 +49,8 @@ service FileServer {
     // Deletes the Blob with given BlobId, then returns the error status.
     rpc Delete (BlobId) returns (ErrorStatus);
 
-    // Downloads the Blob with given BlobId, then returns the error status.
-    rpc Download (BlobId) returns (ErrorStatus);
+    // Downloads the Blob with given BlobId, then returns it.
+    rpc Download (BlobId) returns (Blob);
 }
 
 message Validation {
@@ -88,6 +88,9 @@ message Blob {
     // Details about the specification used to create the Blob and when the
     // BlobId will be invalid.
     BlobInfo info = 2;
+
+    // Data being transferred.
+    bytes payload = 3;
 }
 
 message BlobId {
@@ -133,7 +136,7 @@ message DeviceResponse {
 
 message ErrorStatus {
     // Flag is set to True if an error occurs, and set to False otherwise.
-    bool errorFlag = 1;
+    bool wasError = 1;
 
     // Description of error
     string description = 2;

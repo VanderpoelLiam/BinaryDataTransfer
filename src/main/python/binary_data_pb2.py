@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='binary_data.proto',
   package='binaryData',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/protobuf/any.proto\"P\n\nValidation\x12\x12\n\nwasSuccess\x18\x01 \x01(\x08\x12.\n\nexpiration\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\",\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x12\n\nchunkCount\x18\x02 \x01(\x05\"^\n\x08\x42lobInfo\x12\"\n\x04spec\x18\x01 \x01(\x0b\x32\x14.binaryData.BlobSpec\x12.\n\nexpiration\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"J\n\x04\x42lob\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\"\n\x04info\x18\x02 \x01(\x0b\x32\x14.binaryData.BlobInfo\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"L\n\tChunkSpec\x12\"\n\x06\x62lobId\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x12\x0c\n\x04size\x18\x03 \x01(\x05\"m\n\x05\x43hunk\x12#\n\x04spec\x18\x01 \x01(\x0b\x32\x15.binaryData.ChunkSpec\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\x12.\n\nexpiration\x18\x03 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"_\n\x0e\x44\x65viceResponse\x12&\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x17.binaryData.ErrorStatus\x12%\n\x07payload\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\"5\n\x0b\x45rrorStatus\x12\x11\n\terrorFlag\x18\x01 \x01(\x08\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"\x07\n\x05\x45mpty2\x8c\x02\n\x06Upload\x12>\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x1a.binaryData.DeviceResponse\x12<\n\x0bUploadChunk\x12\x11.binaryData.Chunk\x1a\x1a.binaryData.DeviceResponse\x12<\n\nDeleteBlob\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse\x12\x46\n\x14GetAverageBrightness\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse2\xcd\x01\n\x08\x44ownload\x12=\n\x0bGetBlobInfo\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse\x12=\n\x08GetChunk\x12\x15.binaryData.ChunkSpec\x1a\x1a.binaryData.DeviceResponse\x12\x43\n\x12GetMeasurementData\x12\x11.binaryData.Empty\x1a\x1a.binaryData.DeviceResponse2\xf3\x01\n\nFileServer\x12\x42\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x16.binaryData.Validation\x12\x31\n\x04Save\x12\x10.binaryData.Blob\x1a\x17.binaryData.ErrorStatus\x12\x35\n\x06\x44\x65lete\x12\x12.binaryData.BlobId\x1a\x17.binaryData.ErrorStatus\x12\x37\n\x08\x44ownload\x12\x12.binaryData.BlobId\x1a\x17.binaryData.ErrorStatusb\x06proto3')
+  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/protobuf/any.proto\"P\n\nValidation\x12\x12\n\nwasSuccess\x18\x01 \x01(\x08\x12.\n\nexpiration\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\",\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x12\n\nchunkCount\x18\x02 \x01(\x05\"^\n\x08\x42lobInfo\x12\"\n\x04spec\x18\x01 \x01(\x0b\x32\x14.binaryData.BlobSpec\x12.\n\nexpiration\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"[\n\x04\x42lob\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\"\n\x04info\x18\x02 \x01(\x0b\x32\x14.binaryData.BlobInfo\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"L\n\tChunkSpec\x12\"\n\x06\x62lobId\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x12\x0c\n\x04size\x18\x03 \x01(\x05\"m\n\x05\x43hunk\x12#\n\x04spec\x18\x01 \x01(\x0b\x32\x15.binaryData.ChunkSpec\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\x12.\n\nexpiration\x18\x03 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"_\n\x0e\x44\x65viceResponse\x12&\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x17.binaryData.ErrorStatus\x12%\n\x07payload\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\"4\n\x0b\x45rrorStatus\x12\x10\n\x08wasError\x18\x01 \x01(\x08\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"\x07\n\x05\x45mpty2\x8c\x02\n\x06Upload\x12>\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x1a.binaryData.DeviceResponse\x12<\n\x0bUploadChunk\x12\x11.binaryData.Chunk\x1a\x1a.binaryData.DeviceResponse\x12<\n\nDeleteBlob\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse\x12\x46\n\x14GetAverageBrightness\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse2\xcd\x01\n\x08\x44ownload\x12=\n\x0bGetBlobInfo\x12\x12.binaryData.BlobId\x1a\x1a.binaryData.DeviceResponse\x12=\n\x08GetChunk\x12\x15.binaryData.ChunkSpec\x1a\x1a.binaryData.DeviceResponse\x12\x43\n\x12GetMeasurementData\x12\x11.binaryData.Empty\x1a\x1a.binaryData.DeviceResponse2\xec\x01\n\nFileServer\x12\x42\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x16.binaryData.Validation\x12\x31\n\x04Save\x12\x10.binaryData.Blob\x1a\x17.binaryData.ErrorStatus\x12\x35\n\x06\x44\x65lete\x12\x12.binaryData.BlobId\x1a\x17.binaryData.ErrorStatus\x12\x30\n\x08\x44ownload\x12\x12.binaryData.BlobId\x1a\x10.binaryData.Blobb\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
 
@@ -163,6 +163,13 @@ _BLOB = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='payload', full_name='binaryData.Blob.payload', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -176,7 +183,7 @@ _BLOB = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=317,
-  serialized_end=391,
+  serialized_end=408,
 )
 
 
@@ -206,8 +213,8 @@ _BLOBID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=393,
-  serialized_end=413,
+  serialized_start=410,
+  serialized_end=430,
 )
 
 
@@ -237,8 +244,8 @@ _EXPIRATIONTIME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=473,
+  serialized_start=432,
+  serialized_end=490,
 )
 
 
@@ -282,8 +289,8 @@ _CHUNKSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=475,
-  serialized_end=551,
+  serialized_start=492,
+  serialized_end=568,
 )
 
 
@@ -327,8 +334,8 @@ _CHUNK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=553,
-  serialized_end=662,
+  serialized_start=570,
+  serialized_end=679,
 )
 
 
@@ -365,8 +372,8 @@ _DEVICERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=664,
-  serialized_end=759,
+  serialized_start=681,
+  serialized_end=776,
 )
 
 
@@ -378,7 +385,7 @@ _ERRORSTATUS = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='errorFlag', full_name='binaryData.ErrorStatus.errorFlag', index=0,
+      name='wasError', full_name='binaryData.ErrorStatus.wasError', index=0,
       number=1, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
@@ -403,8 +410,8 @@ _ERRORSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=761,
-  serialized_end=814,
+  serialized_start=778,
+  serialized_end=830,
 )
 
 
@@ -427,8 +434,8 @@ _EMPTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=816,
-  serialized_end=823,
+  serialized_start=832,
+  serialized_end=839,
 )
 
 _VALIDATION.fields_by_name['expiration'].message_type = _EXPIRATIONTIME
@@ -540,8 +547,8 @@ _UPLOAD = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=826,
-  serialized_end=1094,
+  serialized_start=842,
+  serialized_end=1110,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateBlob',
@@ -591,8 +598,8 @@ _DOWNLOAD = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   options=None,
-  serialized_start=1097,
-  serialized_end=1302,
+  serialized_start=1113,
+  serialized_end=1318,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetBlobInfo',
@@ -633,8 +640,8 @@ _FILESERVER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=2,
   options=None,
-  serialized_start=1305,
-  serialized_end=1548,
+  serialized_start=1321,
+  serialized_end=1557,
   methods=[
   _descriptor.MethodDescriptor(
     name='ValidateFileServer',
@@ -669,7 +676,7 @@ _FILESERVER = _descriptor.ServiceDescriptor(
     index=3,
     containing_service=None,
     input_type=_BLOBID,
-    output_type=_ERRORSTATUS,
+    output_type=_BLOB,
     options=None,
   ),
 ])

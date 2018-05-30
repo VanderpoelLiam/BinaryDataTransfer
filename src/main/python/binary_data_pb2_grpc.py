@@ -209,7 +209,7 @@ class FileServerStub(object):
     self.Download = channel.unary_unary(
         '/binaryData.FileServer/Download',
         request_serializer=binary__data__pb2.BlobId.SerializeToString,
-        response_deserializer=binary__data__pb2.ErrorStatus.FromString,
+        response_deserializer=binary__data__pb2.Blob.FromString,
         )
 
 
@@ -239,7 +239,7 @@ class FileServerServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def Download(self, request, context):
-    """Downloads the Blob with given BlobId, then returns the error status.
+    """Downloads the Blob with given BlobId, then returns it.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -266,7 +266,7 @@ def add_FileServerServicer_to_server(servicer, server):
       'Download': grpc.unary_unary_rpc_method_handler(
           servicer.Download,
           request_deserializer=binary__data__pb2.BlobId.FromString,
-          response_serializer=binary__data__pb2.ErrorStatus.SerializeToString,
+          response_serializer=binary__data__pb2.Blob.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

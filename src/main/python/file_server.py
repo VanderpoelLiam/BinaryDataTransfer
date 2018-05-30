@@ -3,11 +3,13 @@ from concurrent import futures
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import grpc
+import json
 import time
 import binary_data_pb2
 import binary_data_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+_DATABASE_FILENAME = 'binary_data_db.json'
 
 
 def get_validation(blob_spec):
@@ -25,23 +27,71 @@ def get_expiration():
     expiration_date.FromDatetime(datetime.now() + timedelta(days=365))
     return expiration_date
 
-def store_blob(blob):
-    # TODO need to resolve issue with Blob storing no data before can finish
-    # this method
-    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
+def save_blob(filename, blob):
+    write_blob(filename, blob)
+    description="Sucessfully stored blob with id %i" % blob.id.id
+    error_status = binary_data_pb2.ErrorStatus(wasError=False,
+                                                description=description)
+    # try:
+    #     write_blob(filename, blob)
+    #     description="Sucessfully stored blob with id %i" % blob.id.id
+    #     error_status = binary_data_pb2.ErrorStatus(wasError=False,
+    #                                                 description=description)
+    # except Exception as e:
+    #     error_status = binary_data_pb2.ErrorStatus(wasError=True,
+    #                                                 description=str(e))
     return error_status
 
-def delete_blob(blob_id):
-    # TODO I need to create a database where I store blobs, this method should
-    # remove blob from the database
-    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
+def download_blob(filename, blob_id):
+    """
+    Returns None if no blob with the given id is found.
+    """
+    payload = read_blob_payload(filename, blob_id)
+    if payload is None:
+        return None
+    return binary_data_pb2.Blob(id=blob_id, payload=payload)
+
+def delete_blob(filename, blob_id):
+    remove_blob(filename, blob_id)
+    description="Sucessfully deleted blob with id %i" % blob_id.id
+    error_status = binary_data_pb2.ErrorStatus(wasError=False, description="")
     return error_status
 
-def download_blob(blob_id):
-    # TODO like previous method need database + should not return error status
-    # but a blob
-    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
-    return error_status
+def remove_blob(filename, blob_id):
+    remove_by_key_db(filename, str(blob_id.id))
+
+def write_blob(filename, blob):
+    data = read_db(filename)
+    payload_as_string = blob.payload.decode("utf-8")
+    data[str(blob.id.id)] = payload_as_string
+    write_db(filename, data)
+
+def read_blob_payload(filename, blob_id):
+    """
+    Returns None if no blob with the given id is found.
+    """
+    try:
+        data = read_db(filename)
+        payload_as_string = data[str(blob_id.id)]
+        payload_as_bytes = payload_as_string.encode("utf-8")
+        return payload_as_bytes
+    except KeyError:
+        return None
+
+def read_db(filename):
+    # print("\n" + filename)
+    with open(filename) as fp:
+        data = json.load(fp)
+    return data
+
+def write_db(filename, data):
+    with open(filename, 'w') as fp:
+        json.dump(data, fp)
+
+def remove_by_key_db(filename, key):
+    data = read_db(filename)
+    del data[key]
+    write_db(filename, data)
 
 
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
@@ -66,7 +116,7 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """request  - Blob
            response - ErrorStatus
         """
-        status = store_blob(request)
+        status = save_blob(request)
         return status
 
     def Delete(self, request, context):
@@ -80,7 +130,7 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """request  - BlobId
            response - ErrorStatus
         """
-        status = download_blob(request)
+        status = download_blob(_DATABASE_FILENAME, request)
         return status
 
 

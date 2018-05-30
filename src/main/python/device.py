@@ -9,7 +9,7 @@ def file_server_validate(stub):
     blob_size = 32
     chuck_count = 2
 
-    blob_spec = binary_data_pb2.BlobSpec(blobSize=blob_size, chunkCount=chuck_count)
+    blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunkCount=chuck_count)
     validation = stub.ValidateFileServer(blob_spec)
     if validation.wasSuccess:
         print("Server can store the blob until %r" % validation.expiration)

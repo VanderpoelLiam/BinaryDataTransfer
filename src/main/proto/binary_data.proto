@@ -65,7 +65,7 @@ message Validation {
 // Messages used by above services
 message BlobSpec {
     // Size of Blob in bits
-    int32 blobSize = 1;
+    int32 size = 1;
 
     // Number of Chunks to divide Blob into for transmission
     int32 chunkCount = 2;

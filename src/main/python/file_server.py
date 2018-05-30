@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 from concurrent import futures
 from google.protobuf.timestamp_pb2 import Timestamp
+
 import grpc
 import time
-
 import binary_data_pb2
 import binary_data_pb2_grpc
 
@@ -11,7 +11,7 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def get_validation(blob_spec):
-    flag = has_space(blob_spec.blobSize)
+    flag = has_space(blob_spec.size)
     valid_until = binary_data_pb2.ExpirationTime(time=get_expiration())
     return binary_data_pb2.Validation(wasSuccess=flag, expiration=valid_until)
 
@@ -24,6 +24,24 @@ def get_expiration():
     expiration_date = Timestamp()
     expiration_date.FromDatetime(datetime.now() + timedelta(days=365))
     return expiration_date
+
+def store_blob(blob):
+    # TODO need to resolve issue with Blob storing no data before can finish
+    # this method
+    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
+    return error_status
+
+def delete_blob(blob_id):
+    # TODO I need to create a database where I store blobs, this method should
+    # remove blob from the database
+    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
+    return error_status
+
+def download_blob(blob_id):
+    # TODO like previous method need database + should not return error status
+    # but a blob
+    error_status = binary_data_pb2.ErrorStatus(errorFlag=True, description="")
+    return error_status
 
 
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
@@ -48,19 +66,22 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """request  - Blob
            response - ErrorStatus
         """
-        # TODO
+        status = store_blob(request)
+        return status
 
     def Delete(self, request, context):
         """request  - BlobId
            response - ErrorStatus
         """
-        # TODO
+        status = delete_blob(request)
+        return status
 
     def Download(self, request, context):
         """request  - BlobId
            response - ErrorStatus
         """
-        # TODO
+        status = download_blob(request)
+        return status
 
 
 def serve():

@@ -12,10 +12,13 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 _DATABASE_FILENAME = 'binary_data_db.json'
 
 
-def get_validation(blob_spec):
-    flag = has_space(blob_spec.size)
-    valid_until = binary_data_pb2.ExpirationTime(time=get_expiration())
-    return binary_data_pb2.Validation(wasSuccess=flag, expiration=valid_until)
+def can_create_blob(blob_spec):
+    if have_space(blob_spec.size):
+        expiration_time = get_expiration_time()
+        return binary_data_pb2.Response(valid_until=expiration_time)
+    else:
+        error = binary_data_pb2.Error(description="Not enough space to store blob")
+        return binary_data_pb2.Response(error=error)
 
 def has_space(blob_size):
     # Assume server has unlimited space
@@ -100,22 +103,17 @@ def remove_by_key_db(filename, key):
 
 
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
-    """Provides methods that implement functionality of the file server.
-    The functions follow the following format:
-    Inputs:
-            request - a binary_data_pb2 object request for the RPC
-            context - grpc.ServicerContext object that provides RPC-specific
-                      information such as timeout limits.
-        Outputs:
-            response - a binary_data_pb2 object response for the client
+    """Interfaces exported by the server.
     """
-
     def ValidateFileServer(self, request, context):
-        """request  - BlobSpec
-           response - Validation
+        """Checks if we can create a Blob specified by BlobSpec on the FileServer
+        and returns the ExpirationTime until which the Blob is valid. Returns an
+        Error if there is not enough space.
         """
-        validation = get_validation(request)
-        return validation
+        print("Inside ValidateFileServer")
+        blob_spec = request
+        response = can_create_blob(blob_spec)
+        return response
 
     def Save(self, request, context):
         """request  - Blob

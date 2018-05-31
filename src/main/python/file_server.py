@@ -28,33 +28,38 @@ def get_expiration():
     return expiration_date
 
 def save_blob(filename, blob):
-    write_blob(filename, blob)
-    description="Sucessfully stored blob with id %i" % blob.id.id
-    error_status = binary_data_pb2.ErrorStatus(wasError=False,
-                                                description=description)
-    # try:
-    #     write_blob(filename, blob)
-    #     description="Sucessfully stored blob with id %i" % blob.id.id
-    #     error_status = binary_data_pb2.ErrorStatus(wasError=False,
-    #                                                 description=description)
-    # except Exception as e:
-    #     error_status = binary_data_pb2.ErrorStatus(wasError=True,
-    #                                                 description=str(e))
+    try:
+        write_blob(filename, blob)
+        description="Sucessfully stored blob with id %i" % blob.id.id
+        error_status = binary_data_pb2.ErrorStatus(wasError=False,
+                                                    description=description)
+    except Exception as e:
+        error_status = binary_data_pb2.ErrorStatus(wasError=True,
+                                                    description=str(e))
     return error_status
 
 def download_blob(filename, blob_id):
     """
     Returns None if no blob with the given id is found.
     """
-    payload = read_blob_payload(filename, blob_id)
+    try:
+        payload = read_blob_payload(filename, blob_id)
+    except Exception:
+        return None
+
     if payload is None:
         return None
-    return binary_data_pb2.Blob(id=blob_id, payload=payload)
+    else:
+        return binary_data_pb2.Blob(id=blob_id, payload=payload)
 
 def delete_blob(filename, blob_id):
-    remove_blob(filename, blob_id)
-    description="Sucessfully deleted blob with id %i" % blob_id.id
-    error_status = binary_data_pb2.ErrorStatus(wasError=False, description="")
+    try:
+        remove_blob(filename, blob_id)
+        description="Sucessfully deleted blob with id %i" % blob_id.id
+        error_status = binary_data_pb2.ErrorStatus(wasError=False, description=description)
+    except Exception as e:
+        error_status = binary_data_pb2.ErrorStatus(wasError=True,
+                                                    description=str(e))
     return error_status
 
 def remove_blob(filename, blob_id):
@@ -116,14 +121,14 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """request  - Blob
            response - ErrorStatus
         """
-        status = save_blob(request)
+        status = save_blob(_DATABASE_FILENAME, request)
         return status
 
     def Delete(self, request, context):
         """request  - BlobId
            response - ErrorStatus
         """
-        status = delete_blob(request)
+        status = delete_blob(_DATABASE_FILENAME, request)
         return status
 
     def Download(self, request, context):

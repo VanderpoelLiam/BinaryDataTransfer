@@ -138,7 +138,29 @@ class TestAcessingBlobs(unittest.TestCase):
         actual_blob = file_server.download_blob(filename, self._blob_id)
         self.assertIsNone(actual_blob)
 
-    # TODO test save and delete blob having erros
+    def test_save_blob_error(self):
+        # Setup
+        filename = 'invalid_filename'
+        # Test
+        actual_status = file_server.save_blob(filename, self._blob)
+        self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
+        self.assertTrue(actual_status.wasError)
+
+    def test_delete_blob_error(self):
+        # Setup
+        filename = 'invalid_filename'
+        # Test
+        actual_status = file_server.delete_blob(filename, self._blob_id)
+        self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
+        self.assertTrue(actual_status.wasError)
+
+    def test_download_blob_error(self):
+        # Setup
+        filename = 'invalid_filename'
+        # Test
+        actual_blob = file_server.download_blob(filename, self._blob_id)
+        self.assertIsNone(actual_blob)
+
 
 if __name__ == '__main__':
     unittest.main()

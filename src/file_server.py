@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from concurrent import futures
 from google.protobuf.timestamp_pb2 import Timestamp
+from google.protobuf.any_pb2 import Any
 
 import grpc
 import json
@@ -9,22 +10,24 @@ import binary_data_pb2
 import binary_data_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-_DATABASE_FILENAME = 'binary_data_db.json'
 
 
 def can_create_blob(blob_spec):
     if have_space(blob_spec.size):
         expiration_time = get_expiration_time()
-        return binary_data_pb2.Response(valid_until=expiration_time)
+        payload = Any().Pack(expiration_time)
+        return binary_data_pb2.Response(payload=payload)
     else:
-        error = binary_data_pb2.Error(description="Not enough space to store blob")
-        return binary_data_pb2.Response(error=error)
+        return binary_data_pb2.Response(error=get_error())
 
-def has_space(blob_size):
+def have_space(blob_size):
     # Assume server has unlimited space
     return True
 
-def get_expiration():
+def get_error():
+    return binary_data_pb2.Error(description="Not enough space to store blob")
+
+def get_expiration_time():
     # Assume server can store data for 1 year (365 days)
     expiration_date = Timestamp()
     expiration_date.FromDatetime(datetime.now() + timedelta(days=365))
@@ -101,16 +104,17 @@ def remove_by_key_db(filename, key):
     del data[key]
     write_db(filename, data)
 
-
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
     """Interfaces exported by the server.
     """
+    def __init__(self):
+        self._DATABASE_FILENAME = 'binary_data_db.json'
+
     def ValidateFileServer(self, request, context):
         """Checks if we can create a Blob specified by BlobSpec on the FileServer
         and returns the ExpirationTime until which the Blob is valid. Returns an
         Error if there is not enough space.
         """
-        print("Inside ValidateFileServer")
         blob_spec = request
         response = can_create_blob(blob_spec)
         return response
@@ -119,21 +123,21 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """request  - Blob
            response - ErrorStatus
         """
-        status = save_blob(_DATABASE_FILENAME, request)
+        status = save_blob(self._DATABASE_FILENAME, request)
         return status
 
     def Delete(self, request, context):
         """request  - BlobId
            response - ErrorStatus
         """
-        status = delete_blob(_DATABASE_FILENAME, request)
+        status = delete_blob(self._DATABASE_FILENAME, request)
         return status
 
     def Download(self, request, context):
         """request  - BlobId
            response - ErrorStatus
         """
-        status = download_blob(_DATABASE_FILENAME, request)
+        status = download_blob(self._DATABASE_FILENAME, request)
         return status
 
 

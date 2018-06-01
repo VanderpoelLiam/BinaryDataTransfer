@@ -220,6 +220,7 @@ class TestServerMethods(unittest.TestCase):
         self.assertEqual(response.error, file_server.get_error())
 
     def test_Save(self):
+        # TODO get save chunk method working correctly
         # response = self.server.Save(self.chunk, self.context)
         # self.assertEqual(response.error.description, "")
         # expiration_time = file_server.get_expiration_time()

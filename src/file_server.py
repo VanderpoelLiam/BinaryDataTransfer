@@ -26,10 +26,11 @@ def get_error():
     return binary_data_pb2.Error(description="Not enough space to store blob")
 
 def get_expiration_time():
-    # Assume server can store data for 1 year (365 days)
-    expiration_date = Timestamp()
-    expiration_date.FromDatetime(datetime.now() + timedelta(days=365))
-    return expiration_date
+    # Assume the expiration time is fixed
+    expiration_time = Timestamp()
+    expiration_time.FromDatetime(datetime(day=1,month=2,year=2019) + timedelta(days=365))
+    result = binary_data_pb2.ExpirationTime(time=expiration_time)
+    return result
 
 def save_blob(filename, blob):
     try:

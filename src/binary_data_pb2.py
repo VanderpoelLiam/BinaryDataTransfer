@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='binary_data.proto',
   package='binaryData',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x94\x01\n\x08Response\x12\"\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.ErrorH\x00\x12\x31\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12)\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfoH\x00\x42\x06\n\x04type2B\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response2N\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Responseb\x06proto3')
+  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x94\x01\n\x08Response\x12\"\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.ErrorH\x00\x12\x31\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTimeH\x00\x12)\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfoH\x00\x42\x06\n\x04type2B\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response2N\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Responseb\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -247,7 +247,7 @@ _BLOBINFO.fields_by_name['id'].message_type = _BLOBID
 _BLOBINFO.fields_by_name['valid_until'].message_type = _EXPIRATIONTIME
 _EXPIRATIONTIME.fields_by_name['time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
 _RESPONSE.fields_by_name['error'].message_type = _ERROR
-_RESPONSE.fields_by_name['valid_until'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_RESPONSE.fields_by_name['valid_until'].message_type = _EXPIRATIONTIME
 _RESPONSE.fields_by_name['blob_info'].message_type = _BLOBINFO
 _RESPONSE.oneofs_by_name['type'].fields.append(
   _RESPONSE.fields_by_name['error'])

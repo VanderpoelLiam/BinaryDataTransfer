@@ -95,7 +95,7 @@ message Response {
     oneof type {
         Error error = 1;
 
-        google.protobuf.Timestamp valid_until = 2;
+        ExpirationTime valid_until = 2;
 
         BlobInfo blob_info = 3;
     };

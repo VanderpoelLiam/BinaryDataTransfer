@@ -165,18 +165,19 @@ import unittest
 class TestServerMethods(unittest.TestCase):
     @classmethod
     def setUpClass(self):
+        self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        self.server = FileServerServicer()
+        self.server = FileServerServicer(self.server_size)
 
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)
-        expiration_time = binary_data_pb2.ExpirationTime()
-        expiration_time = response.payload.Unpack(expiration_time)
-        self.assertEqual(expiration_time, file_server.get_expiration_time())
+        self.assertEqual(response.valid_until, file_server.get_expiration_time())
 
     def test_ValidateFileServer_error(self):
-        response = self.server.ValidateFileServer(self.blob_spec, self.context)
+        blob_size = self.server_size * 2
+        error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=1)
+        response = self.server.ValidateFileServer(error_blob_spec, self.context)
         self.assertEqual(response.error, file_server.get_error())
 
 if __name__ == '__main__':

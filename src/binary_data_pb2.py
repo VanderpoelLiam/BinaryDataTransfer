@@ -14,16 +14,15 @@ _sym_db = _symbol_database.Default()
 
 
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
-from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='binary_data.proto',
   package='binaryData',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19google/protobuf/any.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"_\n\x08Response\x12\'\n\x07payload\x18\x01 \x01(\x0b\x32\x14.google.protobuf.AnyH\x00\x12\"\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x11.binaryData.ErrorH\x00\x42\x06\n\x04type2B\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response2N\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Responseb\x06proto3')
+  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x94\x01\n\x08Response\x12\"\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.ErrorH\x00\x12\x31\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.TimestampH\x00\x12)\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfoH\x00\x42\x06\n\x04type2B\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response2N\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Responseb\x06proto3')
   ,
-  dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
 
 
@@ -61,8 +60,8 @@ _BLOBSPEC = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=93,
-  serialized_end=138,
+  serialized_start=66,
+  serialized_end=111,
 )
 
 
@@ -99,8 +98,8 @@ _BLOBINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=140,
-  serialized_end=231,
+  serialized_start=113,
+  serialized_end=204,
 )
 
 
@@ -130,8 +129,8 @@ _ERROR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=233,
-  serialized_end=261,
+  serialized_start=206,
+  serialized_end=234,
 )
 
 
@@ -161,8 +160,8 @@ _EXPIRATIONTIME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=263,
-  serialized_end=321,
+  serialized_start=236,
+  serialized_end=294,
 )
 
 
@@ -192,8 +191,8 @@ _BLOBID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=323,
-  serialized_end=343,
+  serialized_start=296,
+  serialized_end=316,
 )
 
 
@@ -205,15 +204,22 @@ _RESPONSE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='payload', full_name='binaryData.Response.payload', index=0,
+      name='error', full_name='binaryData.Response.error', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='error', full_name='binaryData.Response.error', index=1,
+      name='valid_until', full_name='binaryData.Response.valid_until', index=1,
       number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='blob_info', full_name='binaryData.Response.blob_info', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -233,21 +239,25 @@ _RESPONSE = _descriptor.Descriptor(
       name='type', full_name='binaryData.Response.type',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=345,
-  serialized_end=440,
+  serialized_start=319,
+  serialized_end=467,
 )
 
 _BLOBINFO.fields_by_name['id'].message_type = _BLOBID
 _BLOBINFO.fields_by_name['valid_until'].message_type = _EXPIRATIONTIME
 _EXPIRATIONTIME.fields_by_name['time'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
-_RESPONSE.fields_by_name['payload'].message_type = google_dot_protobuf_dot_any__pb2._ANY
 _RESPONSE.fields_by_name['error'].message_type = _ERROR
-_RESPONSE.oneofs_by_name['type'].fields.append(
-  _RESPONSE.fields_by_name['payload'])
-_RESPONSE.fields_by_name['payload'].containing_oneof = _RESPONSE.oneofs_by_name['type']
+_RESPONSE.fields_by_name['valid_until'].message_type = google_dot_protobuf_dot_timestamp__pb2._TIMESTAMP
+_RESPONSE.fields_by_name['blob_info'].message_type = _BLOBINFO
 _RESPONSE.oneofs_by_name['type'].fields.append(
   _RESPONSE.fields_by_name['error'])
 _RESPONSE.fields_by_name['error'].containing_oneof = _RESPONSE.oneofs_by_name['type']
+_RESPONSE.oneofs_by_name['type'].fields.append(
+  _RESPONSE.fields_by_name['valid_until'])
+_RESPONSE.fields_by_name['valid_until'].containing_oneof = _RESPONSE.oneofs_by_name['type']
+_RESPONSE.oneofs_by_name['type'].fields.append(
+  _RESPONSE.fields_by_name['blob_info'])
+_RESPONSE.fields_by_name['blob_info'].containing_oneof = _RESPONSE.oneofs_by_name['type']
 DESCRIPTOR.message_types_by_name['BlobSpec'] = _BLOBSPEC
 DESCRIPTOR.message_types_by_name['BlobInfo'] = _BLOBINFO
 DESCRIPTOR.message_types_by_name['Error'] = _ERROR
@@ -306,8 +316,8 @@ _UPLOAD = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=442,
-  serialized_end=508,
+  serialized_start=469,
+  serialized_end=535,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateBlob',
@@ -330,8 +340,8 @@ _FILESERVER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   options=None,
-  serialized_start=510,
-  serialized_end=588,
+  serialized_start=537,
+  serialized_end=615,
   methods=[
   _descriptor.MethodDescriptor(
     name='ValidateFileServer',

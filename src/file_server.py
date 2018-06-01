@@ -12,17 +12,15 @@ import binary_data_pb2_grpc
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-def can_create_blob(blob_spec):
-    if have_space(blob_spec.size):
+def can_create_blob(blob_spec, availible_server_space):
+    if have_space(blob_spec.size, availible_server_space):
         expiration_time = get_expiration_time()
-        payload = Any().Pack(expiration_time)
-        return binary_data_pb2.Response(payload=payload)
+        return binary_data_pb2.Response(valid_until=expiration_time)
     else:
         return binary_data_pb2.Response(error=get_error())
 
-def have_space(blob_size):
-    # Assume server has unlimited space
-    return True
+def have_space(blob_size, availible_server_space):
+    return blob_size <= availible_server_space
 
 def get_error():
     return binary_data_pb2.Error(description="Not enough space to store blob")
@@ -107,8 +105,9 @@ def remove_by_key_db(filename, key):
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
     """Interfaces exported by the server.
     """
-    def __init__(self):
+    def __init__(self, availible_server_space):
         self._DATABASE_FILENAME = 'binary_data_db.json'
+        self._AVAILIBLE_SERVER_SPACE = availible_server_space
 
     def ValidateFileServer(self, request, context):
         """Checks if we can create a Blob specified by BlobSpec on the FileServer
@@ -116,7 +115,7 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         Error if there is not enough space.
         """
         blob_spec = request
-        response = can_create_blob(blob_spec)
+        response = can_create_blob(blob_spec, self._AVAILIBLE_SERVER_SPACE)
         return response
 
     def Save(self, request, context):

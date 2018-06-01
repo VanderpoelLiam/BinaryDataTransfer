@@ -1,6 +1,5 @@
 syntax = "proto3";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/any.proto";
 
 package binaryData;
 
@@ -94,9 +93,11 @@ message BlobId {
 
 message Response {
     oneof type {
-        google.protobuf.Any payload = 1;
+        Error error = 1;
 
-        Error error = 2;
+        google.protobuf.Timestamp valid_until = 2;
+
+        BlobInfo blob_info = 3;
     };
 }
 

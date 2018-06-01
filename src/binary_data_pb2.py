@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='binary_data.proto',
   package='binaryData',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x94\x01\n\x08Response\x12\"\n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.ErrorH\x00\x12\x31\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTimeH\x00\x12)\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfoH\x00\x42\x06\n\x04type2B\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response2N\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Responseb\x06proto3')
+  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"\x1c\n\x05\x45rror\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x97\x01\n\x08Response\x12 \n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.Error\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\x12\'\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfo\x12\x0f\n\x07payload\x18\x04 \x01(\x0c\"L\n\x05\x43hunk\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"?\n\tChunkSpec\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x32z\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12\x36\n\x0bUploadChunk\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response2\xb8\x01\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12/\n\x04Save\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response\x12\x37\n\x08\x44ownload\x12\x15.binaryData.ChunkSpec\x1a\x14.binaryData.Responseb\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -224,6 +224,13 @@ _RESPONSE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='payload', full_name='binaryData.Response.payload', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -235,12 +242,92 @@ _RESPONSE = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
-    _descriptor.OneofDescriptor(
-      name='type', full_name='binaryData.Response.type',
-      index=0, containing_type=None, fields=[]),
   ],
   serialized_start=319,
-  serialized_end=467,
+  serialized_end=470,
+)
+
+
+_CHUNK = _descriptor.Descriptor(
+  name='Chunk',
+  full_name='binaryData.Chunk',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='blob_id', full_name='binaryData.Chunk.blob_id', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='index', full_name='binaryData.Chunk.index', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='payload', full_name='binaryData.Chunk.payload', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=472,
+  serialized_end=548,
+)
+
+
+_CHUNKSPEC = _descriptor.Descriptor(
+  name='ChunkSpec',
+  full_name='binaryData.ChunkSpec',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='blob_id', full_name='binaryData.ChunkSpec.blob_id', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='index', full_name='binaryData.ChunkSpec.index', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=550,
+  serialized_end=613,
 )
 
 _BLOBINFO.fields_by_name['id'].message_type = _BLOBID
@@ -249,21 +336,16 @@ _EXPIRATIONTIME.fields_by_name['time'].message_type = google_dot_protobuf_dot_ti
 _RESPONSE.fields_by_name['error'].message_type = _ERROR
 _RESPONSE.fields_by_name['valid_until'].message_type = _EXPIRATIONTIME
 _RESPONSE.fields_by_name['blob_info'].message_type = _BLOBINFO
-_RESPONSE.oneofs_by_name['type'].fields.append(
-  _RESPONSE.fields_by_name['error'])
-_RESPONSE.fields_by_name['error'].containing_oneof = _RESPONSE.oneofs_by_name['type']
-_RESPONSE.oneofs_by_name['type'].fields.append(
-  _RESPONSE.fields_by_name['valid_until'])
-_RESPONSE.fields_by_name['valid_until'].containing_oneof = _RESPONSE.oneofs_by_name['type']
-_RESPONSE.oneofs_by_name['type'].fields.append(
-  _RESPONSE.fields_by_name['blob_info'])
-_RESPONSE.fields_by_name['blob_info'].containing_oneof = _RESPONSE.oneofs_by_name['type']
+_CHUNK.fields_by_name['blob_id'].message_type = _BLOBID
+_CHUNKSPEC.fields_by_name['blob_id'].message_type = _BLOBID
 DESCRIPTOR.message_types_by_name['BlobSpec'] = _BLOBSPEC
 DESCRIPTOR.message_types_by_name['BlobInfo'] = _BLOBINFO
 DESCRIPTOR.message_types_by_name['Error'] = _ERROR
 DESCRIPTOR.message_types_by_name['ExpirationTime'] = _EXPIRATIONTIME
 DESCRIPTOR.message_types_by_name['BlobId'] = _BLOBID
 DESCRIPTOR.message_types_by_name['Response'] = _RESPONSE
+DESCRIPTOR.message_types_by_name['Chunk'] = _CHUNK
+DESCRIPTOR.message_types_by_name['ChunkSpec'] = _CHUNKSPEC
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 BlobSpec = _reflection.GeneratedProtocolMessageType('BlobSpec', (_message.Message,), dict(
@@ -308,6 +390,20 @@ Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Messag
   ))
 _sym_db.RegisterMessage(Response)
 
+Chunk = _reflection.GeneratedProtocolMessageType('Chunk', (_message.Message,), dict(
+  DESCRIPTOR = _CHUNK,
+  __module__ = 'binary_data_pb2'
+  # @@protoc_insertion_point(class_scope:binaryData.Chunk)
+  ))
+_sym_db.RegisterMessage(Chunk)
+
+ChunkSpec = _reflection.GeneratedProtocolMessageType('ChunkSpec', (_message.Message,), dict(
+  DESCRIPTOR = _CHUNKSPEC,
+  __module__ = 'binary_data_pb2'
+  # @@protoc_insertion_point(class_scope:binaryData.ChunkSpec)
+  ))
+_sym_db.RegisterMessage(ChunkSpec)
+
 
 
 _UPLOAD = _descriptor.ServiceDescriptor(
@@ -316,8 +412,8 @@ _UPLOAD = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   options=None,
-  serialized_start=469,
-  serialized_end=535,
+  serialized_start=615,
+  serialized_end=737,
   methods=[
   _descriptor.MethodDescriptor(
     name='CreateBlob',
@@ -325,6 +421,15 @@ _UPLOAD = _descriptor.ServiceDescriptor(
     index=0,
     containing_service=None,
     input_type=_BLOBSPEC,
+    output_type=_RESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='UploadChunk',
+    full_name='binaryData.Upload.UploadChunk',
+    index=1,
+    containing_service=None,
+    input_type=_CHUNK,
     output_type=_RESPONSE,
     options=None,
   ),
@@ -340,8 +445,8 @@ _FILESERVER = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=1,
   options=None,
-  serialized_start=537,
-  serialized_end=615,
+  serialized_start=740,
+  serialized_end=924,
   methods=[
   _descriptor.MethodDescriptor(
     name='ValidateFileServer',
@@ -349,6 +454,24 @@ _FILESERVER = _descriptor.ServiceDescriptor(
     index=0,
     containing_service=None,
     input_type=_BLOBSPEC,
+    output_type=_RESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Save',
+    full_name='binaryData.FileServer.Save',
+    index=1,
+    containing_service=None,
+    input_type=_CHUNK,
+    output_type=_RESPONSE,
+    options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='Download',
+    full_name='binaryData.FileServer.Download',
+    index=2,
+    containing_service=None,
+    input_type=_CHUNKSPEC,
     output_type=_RESPONSE,
     options=None,
   ),

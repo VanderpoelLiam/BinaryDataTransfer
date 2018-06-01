@@ -9,7 +9,7 @@ import grpc
 
 def start_server(server, server_size):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        file_server.FileServerServicer(server_size), server)
+        file_server.FileServerServicer(server_size, ''), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     # try:

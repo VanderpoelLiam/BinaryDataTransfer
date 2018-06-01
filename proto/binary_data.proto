@@ -12,12 +12,12 @@ service Upload {
     // not enough space.
     rpc CreateBlob (BlobSpec) returns (Response);
 
-    /*
-    // Uploads a Chunk to the server
-    // DeviceResponse updates the ExpirationTime in its Payload OR it changes
-    // the ErrorStatus if it fails to upload a chunk
-    rpc UploadChunk (Chunk) returns (DeviceResponse);
 
+    // Uploads a Chunk to the server and returns the updated ExpirationTime
+    // Returns an Error if there if it fails for any reason.
+    rpc UploadChunk (Chunk) returns (Response);
+
+    /*
     // Deletes the Blob associated with BlobId. DeviceResponse contains a
     // confirmation message OR it changes the ErrorStatus if an issue occurs.
     rpc DeleteBlob (BlobId) returns (DeviceResponse);
@@ -46,15 +46,18 @@ service FileServer {
     // Error if there is not enough space.
     rpc ValidateFileServer (BlobSpec) returns (Response);
 
-    /*
-    // Saves the Blob to the server, then returns the error status.
-    rpc Save (Blob) returns (ErrorStatus);
 
+    // Saves a Chunk to the server and returns the updated ExpirationTime
+    // Returns an Error if there if it fails for any reason.
+    rpc Save (Chunk) returns (Response);
+
+    // Downloads a Chunk from the server specified by the ChunkSpec returns
+    // the Payload and the updated ExpirationTime
+    rpc Download (ChunkSpec) returns (Response);
+
+    /*
     // Deletes the Blob with given BlobId, then returns the error status.
     rpc Delete (BlobId) returns (ErrorStatus);
-
-    // Downloads the Blob with given BlobId, then returns it.
-    rpc Download (BlobId) returns (Blob);
     */
 }
 
@@ -92,26 +95,37 @@ message BlobId {
 }
 
 message Response {
-    oneof type {
-        Error error = 1;
+    Error error = 1;
 
-        ExpirationTime valid_until = 2;
+    ExpirationTime valid_until = 2;
 
-        BlobInfo blob_info = 3;
-    };
+    BlobInfo blob_info = 3;
+
+    bytes payload = 4;
+}
+
+message Chunk {
+    // Associated Blob id
+    BlobId blob_id = 1;
+
+    // Blobs are divided into Chunks. This is the index of the Chunk within
+    // it's Blob (starting at 0).
+    int32 index = 2;
+
+    // Data being transferred.
+    bytes payload = 3;
+}
+
+message ChunkSpec {
+    // Associated Blob id
+    BlobId blob_id = 1;
+
+    // Desired chunk index in the Blob.
+    int32 index = 2;
 }
 
 
 /*
-message Validation {
-    // Flag is set to True if the specified blob can be stored, and set to
-    // False otherwise.
-    bool wasSuccess = 1;
-
-    // Time until when the server will store the Blob specified.
-    ExpirationTime expiration = 2;
-}
-
 message Blob {
     // Unique Blob identifier
     BlobId id = 1;
@@ -122,46 +136,6 @@ message Blob {
 
     // Data being transferred.
     bytes payload = 3;
-}
-
-message ChunkSpec {
-    // Associated Blob id
-    BlobId blobId = 1;
-
-    // Blobs are divided into Chunks. This is the index of the Chunk within
-    // it's Blob which goes from 0 to the chunkCount - 1. (See BlobSpec for
-    // details on the chunkCount).
-    int32 index = 2;
-
-    // Size of the Chunk in bits
-    int32 size = 3;
-}
-
-message Chunk {
-    // Details about Chunk size and it's associated Blob.
-    ChunkSpec spec = 1;
-
-    // Data being transferred.
-    bytes payload = 2;
-
-    // Time when the BlobID is going to be rendered invalid. (See Blob for
-    // more details on the expiration time).
-    ExpirationTime expiration = 3;
-}
-
-message DeviceResponse {
-    ErrorStatus error = 1;
-
-    // Data to be sent to client
-    google.protobuf.Any payload = 2;
-}
-
-message ErrorStatus {
-    // Flag is set to True if an error occurs, and set to False otherwise.
-    bool wasError = 1;
-
-    // Description of error
-    string description = 2;
 }
 
 message Empty {

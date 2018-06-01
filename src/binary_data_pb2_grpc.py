@@ -19,6 +19,11 @@ class UploadStub(object):
         request_serializer=binary__data__pb2.BlobSpec.SerializeToString,
         response_deserializer=binary__data__pb2.Response.FromString,
         )
+    self.UploadChunk = channel.unary_unary(
+        '/binaryData.Upload/UploadChunk',
+        request_serializer=binary__data__pb2.Chunk.SerializeToString,
+        response_deserializer=binary__data__pb2.Response.FromString,
+        )
 
 
 class UploadServicer(object):
@@ -34,12 +39,25 @@ class UploadServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def UploadChunk(self, request, context):
+    """Uploads a Chunk to the server and returns the updated ExpirationTime
+    Returns an Error if there if it fails for any reason.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_UploadServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'CreateBlob': grpc.unary_unary_rpc_method_handler(
           servicer.CreateBlob,
           request_deserializer=binary__data__pb2.BlobSpec.FromString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'UploadChunk': grpc.unary_unary_rpc_method_handler(
+          servicer.UploadChunk,
+          request_deserializer=binary__data__pb2.Chunk.FromString,
           response_serializer=binary__data__pb2.Response.SerializeToString,
       ),
   }
@@ -74,6 +92,16 @@ class FileServerStub(object):
         request_serializer=binary__data__pb2.BlobSpec.SerializeToString,
         response_deserializer=binary__data__pb2.Response.FromString,
         )
+    self.Save = channel.unary_unary(
+        '/binaryData.FileServer/Save',
+        request_serializer=binary__data__pb2.Chunk.SerializeToString,
+        response_deserializer=binary__data__pb2.Response.FromString,
+        )
+    self.Download = channel.unary_unary(
+        '/binaryData.FileServer/Download',
+        request_serializer=binary__data__pb2.ChunkSpec.SerializeToString,
+        response_deserializer=binary__data__pb2.Response.FromString,
+        )
 
 
 class FileServerServicer(object):
@@ -100,12 +128,38 @@ class FileServerServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def Save(self, request, context):
+    """Saves a Chunk to the server and returns the updated ExpirationTime
+    Returns an Error if there if it fails for any reason.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def Download(self, request, context):
+    """Downloads a Chunk from the server specified by the ChunkSpec returns
+    the Payload and the updated ExpirationTime
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_FileServerServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'ValidateFileServer': grpc.unary_unary_rpc_method_handler(
           servicer.ValidateFileServer,
           request_deserializer=binary__data__pb2.BlobSpec.FromString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'Save': grpc.unary_unary_rpc_method_handler(
+          servicer.Save,
+          request_deserializer=binary__data__pb2.Chunk.FromString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'Download': grpc.unary_unary_rpc_method_handler(
+          servicer.Download,
+          request_deserializer=binary__data__pb2.ChunkSpec.FromString,
           response_serializer=binary__data__pb2.Response.SerializeToString,
       ),
   }

@@ -1,106 +1,138 @@
-# from file_server import read_db
-# import json
 from src import binary_data_pb2
 from src import file_server
 from src.file_server import FileServerServicer
 import unittest
+import json
 
-# def test_read_expected():
-#     data = {}
-#     for i in range(1,4):
-#         data[str(i)] = "Data for blob %i" % i
-#     return data
-#
-# def wipe_json_file(filename):
-#     data = {}
-#     with open(filename, 'w') as fp:
-#         json.dump(data, fp)
+def test_read_expected():
+    data = {}
+    for i in range(1,4):
+        data[str(i)] = "Data for blob %i" % i
+    return data
 
-# class TestAcessingDatabase(unittest.TestCase):
+def wipe_json_file(filename):
+    data = {}
+    with open(filename, 'w') as fp:
+        json.dump(data, fp)
+
+class TestAcessingDatabase(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.id = 42
+        self.payload = b"bag of bits"
+        self.blob_id = binary_data_pb2.BlobId(id=self.id)
+        self.index = 2
+        self.test_path = "tests/"
+        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.index,
+                                            payload=self.payload)
+
+    def test_read_db(self):
+        self.assertEqual(file_server.read_db(self.test_path + "test_read.json"), test_read_expected())
+
+    def test_write_db(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        expected_data = test_read_expected()
+        # Test
+        file_server.write_db(filename, expected_data)
+        self.assertEqual(file_server.read_db(filename), expected_data)
+        actual = file_server.read_db(filename)
+        wipe_json_file(filename)
+
+    def test_read_chunk_payload(self):
+        # Setup
+        filename = self.test_path + 'test_read_chunk_payload.json'
+        # Test
+        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        self.assertIsInstance(actual, bytes)
+        self.assertEqual(actual, self.payload)
+
+    def test_read_missing_blob_id(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        # Test
+        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        self.assertIsNone(actual)
+
+    def test_read_missing_index(self):
+        # Setup
+        filename = self.test_path + 'test_read_chunk_payload.json'
+        # Test
+        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index - 1)
+        self.assertIsNone(actual)
+
+    def test_write_chunk(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        # Test
+        file_server.write_chunk(filename, self.chunk, self.index)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        self.assertEqual(actual_payload, self.payload)
+        file_server.write_chunk(filename, self.chunk, self.index + 1)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        self.assertEqual(actual_payload, self.payload)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index + 1)
+        self.assertEqual(actual_payload, self.payload)
+        wipe_json_file(filename)
+
+    # def test_remove_by_key_db(self):
+    #     # Setup
+    #     filename = 'test_empty.json'
+    #     key = "1"
+    #     input_data = test_read_expected()
+    #     file_server.write_db(filename, input_data)
+    #     expected = input_data
+    #     del expected[key]
+    #     # Test
+    #     file_server.remove_by_key_db(filename, key)
+    #     actual = file_server.read_db(filename)
+    #     self.assertEqual(actual, expected)
+    #     wipe_json_file(filename)
+    #
+    # def test_remove_blob(self):
+    #     # Setup
+    #     filename = 'test_empty.json'
+    #     file_server.write_blob(filename, self._blob)
+    #     expected = None
+    #     # Test
+    #     file_server.remove_blob(filename, self.blob_id)
+    #     actual = file_server.read_blob_payload(filename, self.blob_id)
+    #     self.assertEqual(actual, expected)
+    #     wipe_json_file(filename)
+
+# class TestAcessingChunks(unittest.TestCase):
 #     @classmethod
 #     def setUpClass(self):
-#         # print("setUpClass TestAcessingDatabase")
-#         self._id = 42
-#         self._payload = b"bag of bits"
-#         self._blob_id = binary_data_pb2.BlobId(id=self._id)
-#         self._blob = binary_data_pb2.Blob(id=self._blob_id, payload=self._payload)
+#         # self.id = 42
+#         # self.payload = b"bag of bits"
+#         # self.blob_id = binary_data_pb2.BlobId(id=self.id)
+#         # self.index = 2
+#         self.test_path = "tests/"
+#         self.chunk_count = 10
+#         # self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+#         #                                     index=self.index,
+#         #                                     payload=self.payload)
 #
-#     def test_read_db(self):
-#         self.assertEqual(read_db('test_read.json'), test_read_expected())
-#
-#     def test_write_db(self):
+#     def test_create_empty_blob(self):
 #         # Setup
-#         filename = 'test_empty.json'
-#         expected_data = test_read_expected()
-#         wipe_json_file(filename)
+#         filename = self.test_path + 'test_empty.json'
 #         # Test
-#         file_server.write_db(filename, expected_data)
-#         self.assertEqual(file_server.read_db(filename), expected_data)
-#         wipe_json_file(filename)
-#
-#     def test_read_blob_payload(self):
-#         # Setup
-#         filename = 'test_read_blob_payload.json'
-#         # Test
-#         actual = file_server.read_blob_payload(filename, self._blob_id)
+#         file_server.create_empty_blob(filename, self.chunk_count)
+#         actual = file_server.read_chunk_payload(filename, self.blob_id, self.chunk_count)
 #         self.assertIsInstance(actual, bytes)
-#         self.assertEqual(actual, self._payload)
+#         self.assertEqual(actual, b"")
 #
-#     def test_read_blob_empty_payload(self):
-#         # Setup
-#         filename = 'test_empty.json'
-#         # Test
-#         actual = file_server.read_blob_payload(filename, self._blob_id)
-#         self.assertIsNone(actual)
-#
-#     def test_write_blob(self):
-#         # Setup
-#         filename = 'test_empty.json'
-#         # Test
-#         file_server.write_blob(filename, self._blob)
-#         actual_payload = file_server.read_blob_payload(filename, self._blob_id)
-#         self.assertEqual(actual_payload, self._payload)
-#         wipe_json_file(filename)
-#
-#     def test_remove_by_key_db(self):
-#         # Setup
-#         filename = 'test_empty.json'
-#         key = "1"
-#         input_data = test_read_expected()
-#         file_server.write_db(filename, input_data)
-#         expected = input_data
-#         del expected[key]
-#         # Test
-#         file_server.remove_by_key_db(filename, key)
-#         actual = file_server.read_db(filename)
-#         self.assertEqual(actual, expected)
-#         wipe_json_file(filename)
-#
-#     def test_remove_blob(self):
-#         # Setup
-#         filename = 'test_empty.json'
-#         file_server.write_blob(filename, self._blob)
-#         expected = None
-#         # Test
-#         file_server.remove_blob(filename, self._blob_id)
-#         actual = file_server.read_blob_payload(filename, self._blob_id)
-#         self.assertEqual(actual, expected)
-#         wipe_json_file(filename)
-# class TestAcessingBlobs(unittest.TestCase):
-#     @classmethod
-#     def setUpClass(self):
-#         # print("setUpClass TestAcessingDatabase")
-#         self._id = 42
-#         self._payload = b"bag of bits"
-#         self._blob_id = binary_data_pb2.BlobId(id=self._id)
-#         self._blob = binary_data_pb2.Blob(id=self._blob_id, payload=self._payload)
+#         actual = file_server.read_chunk_payload(filename, self.blob_id, 0)
+#         self.assertIsInstance(actual, bytes)
+#         self.assertEqual(actual, b"")
 #
 #     def test_download_blob(self):
 #         # Setup
 #         filename = 'test_read_blob_payload.json'
 #
 #         # Test
-#         actual_blob = file_server.download_blob(filename, self._blob_id)
+#         actual_blob = file_server.download_blob(filename, self.blob_id)
 #         self.assertIsInstance(actual_blob, binary_data_pb2.Blob)
 #         # Blob id and payload determine equality
 #         self.assertEqual(actual_blob.id, self._blob.id)
@@ -110,7 +142,7 @@ import unittest
 #         # Setup
 #         filename = 'test_empty.json'
 #         # Test
-#         actual_blob = file_server.download_blob(filename, self._blob_id)
+#         actual_blob = file_server.download_blob(filename, self.blob_id)
 #         self.assertIsNone(actual_blob)
 #
 #     def test_save_blob(self):
@@ -120,7 +152,7 @@ import unittest
 #         actual_status = file_server.save_blob(filename, self._blob)
 #         self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
 #         self.assertFalse(actual_status.wasError)
-#         actual_blob = file_server.download_blob(filename, self._blob_id)
+#         actual_blob = file_server.download_blob(filename, self.blob_id)
 #         self.assertIsInstance(actual_blob, binary_data_pb2.Blob)
 #         # Blob id and payload determine equality
 #         self.assertEqual(actual_blob.id, self._blob.id)
@@ -132,11 +164,11 @@ import unittest
 #         filename = 'test_empty.json'
 #         file_server.save_blob(filename, self._blob)
 #         # Test
-#         actual_status = file_server.delete_blob(filename, self._blob_id)
+#         actual_status = file_server.delete_blob(filename, self.blob_id)
 #         self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
 #         self.assertFalse(actual_status.wasError)
 #         # Now check we cannot download the blob
-#         actual_blob = file_server.download_blob(filename, self._blob_id)
+#         actual_blob = file_server.download_blob(filename, self.blob_id)
 #         self.assertIsNone(actual_blob)
 #
 #     def test_save_blob_error(self):
@@ -151,7 +183,7 @@ import unittest
 #         # Setup
 #         filename = 'invalid_filename'
 #         # Test
-#         actual_status = file_server.delete_blob(filename, self._blob_id)
+#         actual_status = file_server.delete_blob(filename, self.blob_id)
 #         self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
 #         self.assertTrue(actual_status.wasError)
 #
@@ -159,7 +191,7 @@ import unittest
 #         # Setup
 #         filename = 'invalid_filename'
 #         # Test
-#         actual_blob = file_server.download_blob(filename, self._blob_id)
+#         actual_blob = file_server.download_blob(filename, self.blob_id)
 #         self.assertIsNone(actual_blob)
 
 class TestServerMethods(unittest.TestCase):
@@ -168,17 +200,35 @@ class TestServerMethods(unittest.TestCase):
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        self.server = FileServerServicer(self.server_size)
+        self.server = FileServerServicer(self.server_size, 'test_empty.json')
+        self.blob_id = binary_data_pb2.BlobId(id=42)
+        self.chunk_index = 0
+        self.payload = b"bag of bits"
+        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.chunk_index,
+                                            payload=self.payload)
 
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)
         self.assertEqual(response.valid_until, file_server.get_expiration_time())
+        # TODO check creates empty blob of correct size
 
     def test_ValidateFileServer_error(self):
         blob_size = self.server_size * 2
         error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=1)
         response = self.server.ValidateFileServer(error_blob_spec, self.context)
         self.assertEqual(response.error, file_server.get_error())
+
+    def test_Save(self):
+        # response = self.server.Save(self.chunk, self.context)
+        # self.assertEqual(response.error.description, "")
+        # expiration_time = file_server.get_expiration_time()
+        # updated_expiration_time = file_server.update_expiration_time(expiration_time)
+        # self.assertEqual(response.vaid_until, updated_expiration_time)
+        return
+
+    def test_Save_error(self):
+        return
 
 if __name__ == '__main__':
     unittest.main()

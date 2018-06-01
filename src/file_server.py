@@ -29,10 +29,16 @@ def get_expiration_time():
     # Assume the expiration time is fixed
     expiration_time = Timestamp()
     expiration_time.FromDatetime(datetime(day=1,month=2,year=2019) + timedelta(days=365))
-    result = binary_data_pb2.ExpirationTime(time=expiration_time)
-    return result
+    return binary_data_pb2.ExpirationTime(time=expiration_time)
 
-def save_blob(filename, blob):
+def update_expiration_time(time):
+    expiration_time_dt = ToDatetime(time.valid_until)
+    expiration_time_dt = expiration_time_dt + timedelta(minutes=10)
+    expiration_time = Timestamp()
+    expiration_time.FromDatetime(expiration_time_dt)
+    return binary_data_pb2.ExpirationTime(time=expiration_time)
+
+def save_chunk(filename, blob):
     try:
         write_blob(filename, blob)
         description="Sucessfully stored blob with id %i" % blob.id.id
@@ -70,26 +76,33 @@ def delete_blob(filename, blob_id):
 def remove_blob(filename, blob_id):
     remove_by_key_db(filename, str(blob_id.id))
 
-def write_blob(filename, blob):
+def write_chunk(filename, chunk, index):
     data = read_db(filename)
-    payload_as_string = blob.payload.decode("utf-8")
-    data[str(blob.id.id)] = payload_as_string
+    print("data:")
+    print(data)
+    payload_as_string = chunk.payload.decode("utf-8")
+    blob_id = str(chunk.blob_id.id)
+    try:
+        data[blob_id]
+    except KeyError:
+        data[blob_id] = {}
+    data[blob_id][index] = payload_as_string
     write_db(filename, data)
 
-def read_blob_payload(filename, blob_id):
+def read_chunk_payload(filename, blob_id, index):
     """
-    Returns None if no blob with the given id is found.
+    Returns None if no blob with the given id and index is found.
     """
     try:
         data = read_db(filename)
-        payload_as_string = data[str(blob_id.id)]
+        blob = data[str(blob_id.id)]
+        payload_as_string = blob[str(index)]
         payload_as_bytes = payload_as_string.encode("utf-8")
         return payload_as_bytes
     except KeyError:
         return None
 
 def read_db(filename):
-    # print("\n" + filename)
     with open(filename) as fp:
         data = json.load(fp)
     return data
@@ -106,8 +119,9 @@ def remove_by_key_db(filename, key):
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
     """Interfaces exported by the server.
     """
-    def __init__(self, availible_server_space):
-        self._DATABASE_FILENAME = 'binary_data_db.json'
+    def __init__(self, availible_server_space, database_filename):
+        # self._DATABASE_FILENAME = 'binary_data_db.json'
+        self._DATABASE_FILENAME = database_filename
         self._AVAILIBLE_SERVER_SPACE = availible_server_space
 
     def ValidateFileServer(self, request, context):
@@ -120,10 +134,19 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         return response
 
     def Save(self, request, context):
-        """request  - Blob
-           response - ErrorStatus
+        """Saves a Chunk to the server and returns the updated ExpirationTime
+        Returns an Error if there if it fails for any reason.
         """
-        status = save_blob(self._DATABASE_FILENAME, request)
+        chunk = request
+        status = save_chunk(self._DATABASE_FILENAME, chunk)
+        return status
+
+    def Download(self, request, context):
+        """Downloads a Chunk from the server specified by the ChunkSpec returns
+        the Payload and the updated ExpirationTime
+        """
+        chunk_spec = request
+        status = download_blob(self._DATABASE_FILENAME, chunk_spec)
         return status
 
     def Delete(self, request, context):
@@ -131,13 +154,6 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
            response - ErrorStatus
         """
         status = delete_blob(self._DATABASE_FILENAME, request)
-        return status
-
-    def Download(self, request, context):
-        """request  - BlobId
-           response - ErrorStatus
-        """
-        status = download_blob(self._DATABASE_FILENAME, request)
         return status
 
 

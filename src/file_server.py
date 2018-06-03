@@ -32,22 +32,11 @@ def get_expiration_time():
     return binary_data_pb2.ExpirationTime(time=expiration_time)
 
 def update_expiration_time(time):
-    expiration_time_dt = ToDatetime(time.valid_until)
+    expiration_time_dt = Timestamp.ToDatetime(time.time)
     expiration_time_dt = expiration_time_dt + timedelta(minutes=10)
     expiration_time = Timestamp()
     expiration_time.FromDatetime(expiration_time_dt)
     return binary_data_pb2.ExpirationTime(time=expiration_time)
-
-def save_chunk(filename, blob):
-    try:
-        write_blob(filename, blob)
-        description="Sucessfully stored blob with id %i" % blob.id.id
-        error_status = binary_data_pb2.ErrorStatus(wasError=False,
-                                                    description=description)
-    except Exception as e:
-        error_status = binary_data_pb2.ErrorStatus(wasError=True,
-                                                    description=str(e))
-    return error_status
 
 def download_blob(filename, blob_id):
     """
@@ -76,10 +65,14 @@ def delete_blob(filename, blob_id):
 def remove_blob(filename, blob_id):
     remove_by_key_db(filename, str(blob_id.id))
 
-def write_chunk(filename, chunk, index):
+def save_chunk(filename, chunk):
+    write_chunk(filename, chunk)
+    expiration_time = update_expiration_time(get_expiration_time())
+    return binary_data_pb2.Response(valid_until=expiration_time)
+
+def write_chunk(filename, chunk):
     data = read_db(filename)
-    print("data:")
-    print(data)
+    index = chunk.index
     payload_as_string = chunk.payload.decode("utf-8")
     blob_id = str(chunk.blob_id.id)
     try:

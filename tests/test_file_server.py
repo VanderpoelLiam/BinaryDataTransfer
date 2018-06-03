@@ -26,6 +26,9 @@ class TestAcessingDatabase(unittest.TestCase):
         self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
                                             index=self.index,
                                             payload=self.payload)
+        self.chunk1 = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.index + 1,
+                                            payload=self.payload)
 
     def test_read_db(self):
         self.assertEqual(file_server.read_db(self.test_path + "test_read.json"), test_read_expected())
@@ -66,10 +69,10 @@ class TestAcessingDatabase(unittest.TestCase):
         # Setup
         filename = self.test_path + 'test_empty.json'
         # Test
-        file_server.write_chunk(filename, self.chunk, self.index)
+        file_server.write_chunk(filename, self.chunk)
         actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
         self.assertEqual(actual_payload, self.payload)
-        file_server.write_chunk(filename, self.chunk, self.index + 1)
+        file_server.write_chunk(filename, self.chunk1)
         actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
         self.assertEqual(actual_payload, self.payload)
         actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index + 1)
@@ -200,7 +203,8 @@ class TestServerMethods(unittest.TestCase):
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        self.server = FileServerServicer(self.server_size, 'test_empty.json')
+        filename = 'tests/test_empty.json'
+        self.server = FileServerServicer(self.server_size, filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"
@@ -211,7 +215,6 @@ class TestServerMethods(unittest.TestCase):
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)
         self.assertEqual(response.valid_until, file_server.get_expiration_time())
-        # TODO check creates empty blob of correct size
 
     def test_ValidateFileServer_error(self):
         blob_size = self.server_size * 2
@@ -220,15 +223,15 @@ class TestServerMethods(unittest.TestCase):
         self.assertEqual(response.error, file_server.get_error())
 
     def test_Save(self):
-        # TODO get save chunk method working correctly
-        # response = self.server.Save(self.chunk, self.context)
-        # self.assertEqual(response.error.description, "")
-        # expiration_time = file_server.get_expiration_time()
-        # updated_expiration_time = file_server.update_expiration_time(expiration_time)
-        # self.assertEqual(response.vaid_until, updated_expiration_time)
-        return
+        response = self.server.Save(self.chunk, self.context)
+        # self.assertIsInstance(response, binary_data_pb2.Response)
+        self.assertEqual(response.error.description, "")
+        expiration_time = file_server.get_expiration_time()
+        updated_expiration_time = file_server.update_expiration_time(expiration_time)
+        self.assertEqual(response.valid_until, updated_expiration_time)
 
     def test_Save_error(self):
+        # TODO test behavior when upload chunk fails
         return
 
 if __name__ == '__main__':

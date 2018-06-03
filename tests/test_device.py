@@ -7,9 +7,9 @@ from concurrent import futures
 import unittest
 import grpc
 
-def start_server(server, server_size):
+def start_server(server, server_size, filename):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        file_server.FileServerServicer(server_size, ''), server)
+        file_server.FileServerServicer(server_size, filename), server)
     server.add_insecure_port('[::]:50051')
     server.start()
     # try:
@@ -34,8 +34,14 @@ class TestServerMethods(unittest.TestCase):
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        start_server(self.server, self.server_size)
+        start_server(self.server, self.server_size, 'tests/test_empty.json')
         self.servicer = UploadServicer(get_stub())
+        self.blob_id = binary_data_pb2.BlobId(id=42)
+        self.chunk_index = 0
+        self.payload = b"bag of bits"
+        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.chunk_index,
+                                            payload=self.payload)
 
     def test_CreateBlob(self):
         response = self.servicer.CreateBlob(self.blob_spec, self.context)
@@ -49,6 +55,13 @@ class TestServerMethods(unittest.TestCase):
         error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=1)
         response = self.servicer.CreateBlob(error_blob_spec, self.context)
         self.assertEqual(response.error, file_server.get_error())
+
+    def test_UploadChunk(self):
+        response = self.servicer.UploadChunk(self.chunk, self.context)
+        self.assertEqual(response.error.description, "")
+        expiration_time = file_server.get_expiration_time()
+        updated_expiration_time = file_server.update_expiration_time(expiration_time)
+        self.assertEqual(response.valid_until, updated_expiration_time)
 
     @classmethod
     def tearDownClass(self):

@@ -52,6 +52,14 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         else:
             return binary_data_pb2.Response(error=error)
 
+    def UploadChunk(self, request, context):
+        """Uploads a Chunk to the server and returns the updated ExpirationTime
+        Returns an Error if there if it fails for any reason.
+        """
+        chunk = request
+        response = self.stub.Save(chunk)
+        return response
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     binary_data_pb2_grpc.add_UploadServicer_to_server(

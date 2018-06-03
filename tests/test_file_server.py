@@ -93,6 +93,13 @@ class TestAcessingDatabase(unittest.TestCase):
         self.assertEqual(actual, expected)
         wipe_json_file(filename)
 
+    def test_remove_by_key_db_non_existant_key(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        # Test
+        self.assertRaises(KeyError, file_server.remove_by_key_db, filename, "invalid_key")
+        wipe_json_file(filename)
+
     def test_remove_blob(self):
         # Setup
         filename = self.test_path + 'test_empty.json'
@@ -102,6 +109,13 @@ class TestAcessingDatabase(unittest.TestCase):
         file_server.remove_blob(filename, self.blob_id)
         actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
         self.assertEqual(actual, expected)
+        wipe_json_file(filename)
+
+    def test_remove_blob_non_existant_blob_id(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        # Test
+        self.assertRaises(file_server.BlobNotFoundException, file_server.remove_blob, filename, self.blob_id)
         wipe_json_file(filename)
 
 # class TestAcessingChunks(unittest.TestCase):
@@ -203,8 +217,8 @@ class TestServerMethods(unittest.TestCase):
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        filename = 'tests/test_empty.json'
-        self.server = FileServerServicer(self.server_size, filename)
+        self.default_filename = 'tests/test_empty.json'
+        self.server = FileServerServicer(self.server_size, self.default_filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"
@@ -236,15 +250,28 @@ class TestServerMethods(unittest.TestCase):
 
     def test_Delete(self):
         self.server.Save(self.chunk, self.context)
-        error = self.server.Delete(self.chunk, self.context)
+        error = self.server.Delete(self.blob_id, self.context)
         self.assertEqual(error.description, "")
 
     def test_Delete_on_non_existant_blob(self):
-        # TODO
+        blob_id = binary_data_pb2.BlobId(id=23892)
+        error = self.server.Delete(blob_id, self.context)
+        self.assertEqual(error.description, "")
+
+    def test_Delete_on_wrong_input(self):
+        error = self.server.Delete(self.chunk, self.context)
+        self.assertNotEqual(error.description, "")
+
 
     def test_Dowload_after_delete(self):
         # TODO after implement download
         return
+
+    def setUp(self):
+        wipe_json_file(self.default_filename)
+
+    def tearDown(self):
+        wipe_json_file(self.default_filename)
 
 if __name__ == '__main__':
     unittest.main()

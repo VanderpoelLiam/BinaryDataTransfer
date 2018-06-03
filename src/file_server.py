@@ -55,15 +55,19 @@ def download_blob(filename, blob_id):
 def delete_blob(filename, blob_id):
     try:
         remove_blob(filename, blob_id)
-        description="Sucessfully deleted blob with id %i" % blob_id.id
-        error_status = binary_data_pb2.ErrorStatus(wasError=False, description=description)
+        error = binary_data_pb2.Error(description="")
+    except BlobNotFoundException:
+        error = binary_data_pb2.Error(description="")
     except Exception as e:
-        error_status = binary_data_pb2.ErrorStatus(wasError=True,
-                                                    description=str(e))
-    return error_status
+        error = binary_data_pb2.Error(description=str(e))
+
+    return error
 
 def remove_blob(filename, blob_id):
-    remove_by_key_db(filename, str(blob_id.id))
+    try:
+        remove_by_key_db(filename, str(blob_id.id))
+    except KeyError:
+        raise BlobNotFoundException("No blob with this id is saved")
 
 def save_chunk(filename, chunk):
     write_chunk(filename, chunk)
@@ -109,6 +113,9 @@ def remove_by_key_db(filename, key):
     del data[key]
     write_db(filename, data)
 
+class BlobNotFoundException(Exception):
+    pass
+
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
     """Interfaces exported by the server.
     """
@@ -138,9 +145,12 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """Downloads a Chunk from the server specified by the ChunkSpec returns
         the Payload and the updated ExpirationTime
         """
-        chunk_spec = request
-        status = download_blob(self._DATABASE_FILENAME, chunk_spec)
-        return status
+        # chunk_spec = request
+        # status = download_blob(self._DATABASE_FILENAME, chunk_spec)
+        # return status
+        # TODO
+        return
+
 
     def Delete(self, request, context):
         """Deletes the Blob associated with BlobId and returns an Error object

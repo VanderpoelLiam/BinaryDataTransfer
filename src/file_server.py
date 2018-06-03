@@ -25,7 +25,6 @@ def have_space(blob_size, availible_server_space):
 def get_not_enough_space_error():
     return binary_data_pb2.Error(has_occured=True, description="Not enough space to store blob")
 
-
 def get_expiration_time():
     # Assume the expiration time is fixed
     expiration_time = Timestamp()
@@ -39,19 +38,15 @@ def update_expiration_time(time):
     expiration_time.FromDatetime(expiration_time_dt)
     return binary_data_pb2.ExpirationTime(time=expiration_time)
 
-def download_blob(filename, blob_id):
-    """
-    Returns None if no blob with the given id is found.
-    """
+def download_chunk(filename, chunk_spec):
     try:
-        payload = read_blob_payload(filename, blob_id)
+        payload = read_chunk_payload(filename, chunk_spec.blob_id, chunk_spec.index)
+        response = binary_data_pb2.Response(payload=payload, valid_until=get_expiration_time())
     except Exception:
-        return None
+        error = binary_data_pb2.Error(has_occured=True, description="Issue downloading chunk")
+        response = binary_data_pb2.Response(error=error)
 
-    if payload is None:
-        return None
-    else:
-        return binary_data_pb2.Blob(id=blob_id, payload=payload)
+    return response
 
 def delete_blob(filename, blob_id):
     try:
@@ -92,14 +87,11 @@ def read_chunk_payload(filename, blob_id, index):
     """
     Returns None if no blob with the given id and index is found.
     """
-    try:
-        data = read_db(filename)
-        blob = data[str(blob_id.id)]
-        payload_as_string = blob[str(index)]
-        payload_as_bytes = payload_as_string.encode("utf-8")
-        return payload_as_bytes
-    except KeyError:
-        return None
+    data = read_db(filename)
+    blob = data[str(blob_id.id)]
+    payload_as_string = blob[str(index)]
+    payload_as_bytes = payload_as_string.encode("utf-8")
+    return payload_as_bytes
 
 def read_db(filename):
     with open(filename) as fp:
@@ -144,11 +136,13 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         return response
 
     def Download(self, request, context):
-        """Downloads a Chunk from the server specified by the ChunkSpec returns
-        the Payload and the updated ExpirationTime
+        """Downloads the Chunk specified by ChunkSpec from the server and returns
+        the associated Payload and ExpirationTime in the response. Returns an
+        Error if it fails for any reason.
         """
-        # TODO
-        return
+        chunk_spec = request
+        response = download_chunk(self._DATABASE_FILENAME, chunk_spec)
+        return response
 
 
     def Delete(self, request, context):

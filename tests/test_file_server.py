@@ -57,15 +57,13 @@ class TestAcessingDatabase(unittest.TestCase):
         # Setup
         filename = self.test_path + 'test_empty.json'
         # Test
-        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
-        self.assertIsNone(actual)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index)
 
     def test_read_missing_index(self):
         # Setup
         filename = self.test_path + 'test_read_chunk_payload.json'
         # Test
-        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index - 1)
-        self.assertIsNone(actual)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index - 1)
 
     def test_write_chunk(self):
         # Setup
@@ -106,11 +104,9 @@ class TestAcessingDatabase(unittest.TestCase):
         # Setup
         filename = self.test_path + 'test_empty.json'
         file_server.write_chunk(filename, self.chunk)
-        expected = None
         # Test
         file_server.remove_blob(filename, self.blob_id)
-        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
-        self.assertEqual(actual, expected)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index)
         wipe_json_file(filename)
 
     def test_remove_blob_non_existant_blob_id(self):
@@ -159,31 +155,10 @@ class TestAcessingChunks(unittest.TestCase):
     def test_save_blob_error(self):
         # TODO
         return
-        
-    # def test_download_blob(self):
-    #     # Setup
-    #     filename = 'test_read_blob_payload.json'
-    #
-    #     # Test
-    #     actual_blob = file_server.download_blob(filename, self.blob_id)
-    #     self.assertIsInstance(actual_blob, binary_data_pb2.Blob)
-    #     # Blob id and payload determine equality
-    #     self.assertEqual(actual_blob.id, self._blob.id)
-    #     self.assertEqual(actual_blob.payload, self._blob.payload)
-    # def test_download_blob_error(self):
-    #     # Setup
-    #     filename = 'invalid_filename'
-    #     # Test
-    #     actual_blob = file_server.download_blob(filename, self.blob_id)
-    #     self.assertIsNone(actual_blob)
-    #
-    # def test_download_blob_not_there(self):
-    #     # Setup
-    #     filename = 'test_empty.json'
-    #     # Test
-    #     actual_blob = file_server.download_blob(filename, self.blob_id)
-    #     self.assertIsNone(actual_blob)
-    #
+
+    # TODO all these tests do the exact same thing as the server method tests,
+    # os shoudl move all tests there
+
     def setUp(self):
         wipe_json_file(self.default_filename)
 
@@ -201,6 +176,8 @@ class TestServerMethods(unittest.TestCase):
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"
+        self.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=self.blob_id,
+                                            index=self.chunk_index)
         self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
                                             index=self.chunk_index,
                                             payload=self.payload)
@@ -240,10 +217,21 @@ class TestServerMethods(unittest.TestCase):
         error = self.server.Delete(self.chunk, self.context)
         self.assertTrue(error.has_occured)
 
+    def test_Dowload(self):
+        self.server.Save(self.chunk, self.context)
+        response = self.server.Download(self.chunk_spec, self.context)
+        self.assertEqual(response.valid_until, file_server.get_expiration_time())
+        self.assertEqual(response.payload, self.payload)
+
+    def test_Dowload_chunk_not_exist(self):
+        response = self.server.Download(self.chunk_spec, self.context)
+        self.assertTrue(response.error.has_occured)
 
     def test_Dowload_after_delete(self):
-        # TODO after implement download
-        return
+        self.server.Save(self.chunk, self.context)
+        self.server.Delete(self.blob_id, self.context)
+        response = self.server.Download(self.chunk_spec, self.context)
+        self.assertTrue(response.error.has_occured)
 
     def setUp(self):
         wipe_json_file(self.default_filename)

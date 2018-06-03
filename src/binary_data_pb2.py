@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='binary_data.proto',
   package='binaryData',
   syntax='proto3',
-  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"1\n\x05\x45rror\x12\x13\n\x0bhas_occured\x18\x01 \x01(\x08\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x97\x01\n\x08Response\x12 \n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.Error\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\x12\'\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfo\x12\x0f\n\x07payload\x18\x04 \x01(\x0c\"L\n\x05\x43hunk\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"?\n\tChunkSpec\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x32\xaf\x01\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12\x36\n\x0bUploadChunk\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response\x12\x33\n\nDeleteBlob\x12\x12.binaryData.BlobId\x1a\x11.binaryData.Error2\xe9\x01\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12/\n\x04Save\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response\x12\x37\n\x08\x44ownload\x12\x15.binaryData.ChunkSpec\x1a\x14.binaryData.Response\x12/\n\x06\x44\x65lete\x12\x12.binaryData.BlobId\x1a\x11.binaryData.Errorb\x06proto3')
+  serialized_pb=_b('\n\x11\x62inary_data.proto\x12\nbinaryData\x1a\x1fgoogle/protobuf/timestamp.proto\"-\n\x08\x42lobSpec\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x13\n\x0b\x63hunk_count\x18\x02 \x01(\x05\"[\n\x08\x42lobInfo\x12\x1e\n\x02id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\"1\n\x05\x45rror\x12\x13\n\x0bhas_occured\x18\x01 \x01(\x08\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\":\n\x0e\x45xpirationTime\x12(\n\x04time\x18\x01 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x14\n\x06\x42lobId\x12\n\n\x02id\x18\x01 \x01(\x05\"\x97\x01\n\x08Response\x12 \n\x05\x65rror\x18\x01 \x01(\x0b\x32\x11.binaryData.Error\x12/\n\x0bvalid_until\x18\x02 \x01(\x0b\x32\x1a.binaryData.ExpirationTime\x12\'\n\tblob_info\x18\x03 \x01(\x0b\x32\x14.binaryData.BlobInfo\x12\x0f\n\x07payload\x18\x04 \x01(\x0c\"L\n\x05\x43hunk\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"?\n\tChunkSpec\x12#\n\x07\x62lob_id\x18\x01 \x01(\x0b\x32\x12.binaryData.BlobId\x12\r\n\x05index\x18\x02 \x01(\x05\x32\xaf\x01\n\x06Upload\x12\x38\n\nCreateBlob\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12\x36\n\x0bUploadChunk\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response\x12\x33\n\nDeleteBlob\x12\x12.binaryData.BlobId\x1a\x11.binaryData.Error2C\n\x08\x44ownload\x12\x37\n\x08GetChunk\x12\x15.binaryData.ChunkSpec\x1a\x14.binaryData.Response2\xe9\x01\n\nFileServer\x12@\n\x12ValidateFileServer\x12\x14.binaryData.BlobSpec\x1a\x14.binaryData.Response\x12/\n\x04Save\x12\x11.binaryData.Chunk\x1a\x14.binaryData.Response\x12\x37\n\x08\x44ownload\x12\x15.binaryData.ChunkSpec\x1a\x14.binaryData.Response\x12/\n\x06\x44\x65lete\x12\x12.binaryData.BlobId\x1a\x11.binaryData.Errorb\x06proto3')
   ,
   dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -455,14 +455,38 @@ _sym_db.RegisterServiceDescriptor(_UPLOAD)
 DESCRIPTOR.services_by_name['Upload'] = _UPLOAD
 
 
+_DOWNLOAD = _descriptor.ServiceDescriptor(
+  name='Download',
+  full_name='binaryData.Download',
+  file=DESCRIPTOR,
+  index=1,
+  options=None,
+  serialized_start=814,
+  serialized_end=881,
+  methods=[
+  _descriptor.MethodDescriptor(
+    name='GetChunk',
+    full_name='binaryData.Download.GetChunk',
+    index=0,
+    containing_service=None,
+    input_type=_CHUNKSPEC,
+    output_type=_RESPONSE,
+    options=None,
+  ),
+])
+_sym_db.RegisterServiceDescriptor(_DOWNLOAD)
+
+DESCRIPTOR.services_by_name['Download'] = _DOWNLOAD
+
+
 _FILESERVER = _descriptor.ServiceDescriptor(
   name='FileServer',
   full_name='binaryData.FileServer',
   file=DESCRIPTOR,
-  index=1,
+  index=2,
   options=None,
-  serialized_start=815,
-  serialized_end=1048,
+  serialized_start=884,
+  serialized_end=1117,
   methods=[
   _descriptor.MethodDescriptor(
     name='ValidateFileServer',

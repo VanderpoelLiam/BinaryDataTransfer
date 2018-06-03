@@ -85,20 +85,53 @@ def add_UploadServicer_to_server(servicer, server):
   server.add_generic_rpc_handlers((generic_handler,))
 
 
-class FileServerStub(object):
-  """
-  service Download {
-  // Gets the BlobInfo assiciated with the given BlobID
-  rpc GetBlobInfo (BlobId) returns (DeviceResponse);
+class DownloadStub(object):
+  # missing associated documentation comment in .proto file
+  pass
 
-  // Gets the Chunk specified by ChunkSpec
-  rpc GetChunk (ChunkSpec) returns (DeviceResponse);
+  def __init__(self, channel):
+    """Constructor.
 
-  // Performs an Action which generates a Blob. Then returns the associated
-  // BlobId. In this case it gets the measurement data of the device.
-  rpc GetMeasurementData (Empty) returns (DeviceResponse);
+    Args:
+      channel: A grpc.Channel.
+    """
+    self.GetChunk = channel.unary_unary(
+        '/binaryData.Download/GetChunk',
+        request_serializer=binary__data__pb2.ChunkSpec.SerializeToString,
+        response_deserializer=binary__data__pb2.Response.FromString,
+        )
+
+
+class DownloadServicer(object):
+  # missing associated documentation comment in .proto file
+  pass
+
+  def GetChunk(self, request, context):
+    """Downloads the Chunk specified by ChunkSpec from the server and returns
+    the associated Payload and ExpirationTime in the response. Returns an
+    Error if it fails for any reason.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+
+def add_DownloadServicer_to_server(servicer, server):
+  rpc_method_handlers = {
+      'GetChunk': grpc.unary_unary_rpc_method_handler(
+          servicer.GetChunk,
+          request_deserializer=binary__data__pb2.ChunkSpec.FromString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
   }
-  """
+  generic_handler = grpc.method_handlers_generic_handler(
+      'binaryData.Download', rpc_method_handlers)
+  server.add_generic_rpc_handlers((generic_handler,))
+
+
+class FileServerStub(object):
+  # missing associated documentation comment in .proto file
+  pass
 
   def __init__(self, channel):
     """Constructor.
@@ -129,19 +162,8 @@ class FileServerStub(object):
 
 
 class FileServerServicer(object):
-  """
-  service Download {
-  // Gets the BlobInfo assiciated with the given BlobID
-  rpc GetBlobInfo (BlobId) returns (DeviceResponse);
-
-  // Gets the Chunk specified by ChunkSpec
-  rpc GetChunk (ChunkSpec) returns (DeviceResponse);
-
-  // Performs an Action which generates a Blob. Then returns the associated
-  // BlobId. In this case it gets the measurement data of the device.
-  rpc GetMeasurementData (Empty) returns (DeviceResponse);
-  }
-  """
+  # missing associated documentation comment in .proto file
+  pass
 
   def ValidateFileServer(self, request, context):
     """Checks if we can create a Blob specified by BlobSpec on the FileServer
@@ -161,8 +183,9 @@ class FileServerServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def Download(self, request, context):
-    """Downloads a Chunk from the server specified by the ChunkSpec returns
-    the Payload and the updated ExpirationTime
+    """Downloads the Chunk specified by ChunkSpec from the server and returns
+    the associated Payload and ExpirationTime in the response. Returns an
+    Error if it fails for any reason.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')

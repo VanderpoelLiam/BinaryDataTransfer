@@ -23,7 +23,7 @@ def have_space(blob_size, availible_server_space):
     return blob_size <= availible_server_space
 
 def get_error():
-    return binary_data_pb2.Error(description="Not enough space to store blob")
+    return binary_data_pb2.Error(has_occured=True, description="Not enough space to store blob")
 
 def get_expiration_time():
     # Assume the expiration time is fixed
@@ -55,11 +55,11 @@ def download_blob(filename, blob_id):
 def delete_blob(filename, blob_id):
     try:
         remove_blob(filename, blob_id)
-        error = binary_data_pb2.Error(description="")
-    except BlobNotFoundException:
-        error = binary_data_pb2.Error(description="")
+        error = binary_data_pb2.Error(has_occured=False, description="")
+    except BlobNotFoundException as e:
+        error = binary_data_pb2.Error(has_occured=False, description=str(e))
     except Exception as e:
-        error = binary_data_pb2.Error(description=str(e))
+        error = error = binary_data_pb2.Error(has_occured=True, description=str(e))
 
     return error
 
@@ -138,16 +138,13 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         Returns an Error if there if it fails for any reason.
         """
         chunk = request
-        status = save_chunk(self._DATABASE_FILENAME, chunk)
-        return status
+        response = save_chunk(self._DATABASE_FILENAME, chunk)
+        return response
 
     def Download(self, request, context):
         """Downloads a Chunk from the server specified by the ChunkSpec returns
         the Payload and the updated ExpirationTime
         """
-        # chunk_spec = request
-        # status = download_blob(self._DATABASE_FILENAME, chunk_spec)
-        # return status
         # TODO
         return
 
@@ -158,8 +155,8 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         description if the deletion was a success.
         """
         blob_id = request
-        status = delete_blob(self._DATABASE_FILENAME, blob_id)
-        return status
+        error = delete_blob(self._DATABASE_FILENAME, blob_id)
+        return error
 
 
 def serve():

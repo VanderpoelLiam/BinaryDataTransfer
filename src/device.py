@@ -42,12 +42,10 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         blob_spec = request
         response = self.stub.ValidateFileServer(blob_spec)
         error = response.error
-        if error.description == "":
+        if error.has_occured:
             valid_until = response.valid_until
             blob_info = binary_data_pb2.BlobInfo(id=self._generate_blob_id(),
                                                  valid_until=valid_until)
-            # blob_info = binary_data_pb2.BlobInfo(id=self._generate_blob_id(),
-            #                                      valid_until=valid_until)
             return binary_data_pb2.Response(blob_info=blob_info)
         else:
             return binary_data_pb2.Response(error=error)
@@ -60,6 +58,15 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         chunk = request
         response = self.stub.Save(chunk)
         return response
+
+    def DeleteBlob(self, request, context):
+        """Deletes the Blob associated with BlobId and returns an Error object
+        containing a description of the error that occured, or an empty
+        description if the deletion was a success.
+        """
+        blob_id = request
+        error = self.stub.Delete(blob_id)
+        return error
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

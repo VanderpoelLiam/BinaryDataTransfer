@@ -48,7 +48,7 @@ class TestServerMethods(unittest.TestCase):
         blob_size = self.server_size * 2
         error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=1)
         response = self.servicer.CreateBlob(error_blob_spec, self.context)
-        self.assertEqual(response.error, file_server.get_error())
+        self.assertTrue(response.error.has_occured)
 
     def test_UploadChunk(self):
         response = self.servicer.UploadChunk(self.chunk, self.context)
@@ -60,6 +60,19 @@ class TestServerMethods(unittest.TestCase):
     def test_UploadChunk_error(self):
         # TODO what should occur if upload chunk fails
         return
+
+    def test_DeleteBlob(self):
+        error = self.servicer.DeleteBlob(self.blob_id, self.context)
+        self.assertFalse(error.has_occured)
+
+    def test_DeleteBlob_non_existant_id(self):
+        blob_id = binary_data_pb2.BlobId(id=38302)
+        error = self.servicer.DeleteBlob(blob_id, self.context)
+        self.assertFalse(error.has_occured)
+
+    def test_DeleteBlob_wrong_input(self):
+        error = self.servicer.DeleteBlob(self.blob_spec, self.context)
+        self.assertTrue(error.has_occured)
 
     @classmethod
     def tearDownClass(self):

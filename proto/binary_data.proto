@@ -82,8 +82,10 @@ message BlobInfo {
 }
 
 message Error {
+    // True if error has occured, False otherwise
+    bool has_occured = 1;
     // Description of error
-    string description = 1;
+    string description = 2;
 }
 
 message ExpirationTime {

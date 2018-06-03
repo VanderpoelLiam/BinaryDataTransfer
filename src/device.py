@@ -42,7 +42,6 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         blob_spec = request
         response = self.stub.ValidateFileServer(blob_spec)
         error = response.error
-        print(error.has_occured)
         if error.has_occured:
             return binary_data_pb2.Response(error=error)
         else:
@@ -75,6 +74,24 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             blob_id = request
             error = self.stub.Delete(blob_id)
         return error
+
+
+class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
+    """Interfaces exported by the server.
+    """
+    def __init__(self, file_server_stub):
+        self.stub = file_server_stub
+
+    def GetChunk(self, request, context):
+        """Downloads the Chunk specified by ChunkSpec from the server and returns
+        the associated Payload and ExpirationTime in the response. Returns an
+        Error if it fails for any reason.
+        """
+        chunk_spec = request
+        print(chunk_spec)
+        response = self.stub.Download(chunk_spec)
+        return response
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

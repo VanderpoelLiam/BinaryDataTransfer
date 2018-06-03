@@ -1,4 +1,4 @@
-from src.device import UploadServicer
+from src.device import UploadServicer, DownloadServicer
 from src import file_server
 from src import device
 from src import binary_data_pb2
@@ -6,6 +6,7 @@ from src import binary_data_pb2_grpc
 from concurrent import futures
 import unittest
 import grpc
+import json
 
 def start_server(server, server_size, filename):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
@@ -21,14 +22,21 @@ def get_stub():
     stub = binary_data_pb2_grpc.FileServerStub(channel)
     return stub
 
-class TestServerMethods(unittest.TestCase):
+def wipe_json_file(filename):
+    data = {}
+    with open(filename, 'w') as fp:
+        json.dump(data, fp)
+
+
+class TestUploadMethods(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
-        start_server(self.server, self.server_size, 'tests/test_empty.json')
+        self.default_filename = 'tests/test_empty.json'
+        start_server(self.server, self.server_size, self.default_filename)
         self.servicer = UploadServicer(get_stub())
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
@@ -36,6 +44,16 @@ class TestServerMethods(unittest.TestCase):
         self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
                                             index=self.chunk_index,
                                             payload=self.payload)
+
+    @classmethod
+    def tearDownClass(self):
+        stop_server(self.server)
+
+    def setUp(self):
+        wipe_json_file(self.default_filename)
+
+    def tearDown(self):
+        wipe_json_file(self.default_filename)
 
     def test_CreateBlob(self):
         response = self.servicer.CreateBlob(self.blob_spec, self.context)
@@ -74,6 +92,56 @@ class TestServerMethods(unittest.TestCase):
         error = self.servicer.DeleteBlob(self.blob_spec, self.context)
         self.assertTrue(error.has_occured)
 
+
+class TestDownloadMethods(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        self.server_size = 100
+        self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        self.context = None
+        self.default_filename = 'tests/test_empty.json'
+        start_server(self.server, self.server_size, self.default_filename)
+        self.upload_servicer = UploadServicer(get_stub())
+        self.download_servicer = DownloadServicer(get_stub())
+        self.blob_id = binary_data_pb2.BlobId(id=42)
+        self.chunk_index = 0
+        self.payload = b"bag of bits"
+        self.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=self.blob_id,
+                                            index=self.chunk_index)
+        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.chunk_index,
+                                            payload=self.payload)
     @classmethod
     def tearDownClass(self):
         stop_server(self.server)
+
+    def setUp(self):
+        wipe_json_file(self.default_filename)
+
+    def tearDown(self):
+        wipe_json_file(self.default_filename)
+
+    def test_GetChunk(self):
+        # Create a blob on the server and upload a chunk to this blob
+        creation_response = self.upload_servicer.CreateBlob(self.blob_spec, self.context)
+        blob_info = creation_response.blob_info
+        id = blob_info.id
+        valid_until = blob_info.valid_until
+        chunk = binary_data_pb2.Chunk(blob_id=id,
+                                            index=self.chunk_index,
+                                            payload=self.payload)
+        self.upload_servicer.UploadChunk(chunk, self.context)
+
+        # Specify the chunk spec and download the chunk
+        chunk_spec = binary_data_pb2.ChunkSpec(blob_id=id,
+                                            index=self.chunk_index)
+        response = self.download_servicer.GetChunk(chunk_spec, self.context)
+
+        # Check the data matches
+        self.assertEqual(response.payload, self.payload)
+        self.assertEqual(response.valid_until, valid_until)
+
+    def test_GetChunk_that_not_exist(self):
+        response = self.download_servicer.GetChunk(self.chunk_spec, self.context)
+        self.assertTrue(response.error.has_occured)

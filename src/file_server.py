@@ -41,8 +41,10 @@ def update_expiration_time(time):
 def download_chunk(filename, chunk_spec):
     try:
         payload = read_chunk_payload(filename, chunk_spec.blob_id, chunk_spec.index)
+        print("after read chunk")
         response = binary_data_pb2.Response(payload=payload, valid_until=get_expiration_time())
     except Exception:
+        print("inside exception block")
         error = binary_data_pb2.Error(has_occured=True, description="Issue downloading chunk")
         response = binary_data_pb2.Response(error=error)
 
@@ -57,7 +59,6 @@ def delete_blob(filename, blob_id):
     except Exception as e:
         error = binary_data_pb2.Error(has_occured=True, description=str(e))
 
-    print(type(error))
     return error
 
 def remove_blob(filename, blob_id):

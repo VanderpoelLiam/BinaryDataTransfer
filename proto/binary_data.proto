@@ -14,14 +14,15 @@ service Upload {
 
 
     // Uploads a Chunk to the server and returns the updated ExpirationTime
-    // Returns an Error if there if it fails for any reason.
+    // Returns an Error if it fails for any reason.
     rpc UploadChunk (Chunk) returns (Response);
 
-    /*
-    // Deletes the Blob associated with BlobId. DeviceResponse contains a
-    // confirmation message OR it changes the ErrorStatus if an issue occurs.
-    rpc DeleteBlob (BlobId) returns (DeviceResponse);
+    // Deletes the Blob associated with BlobId and returns an Error object
+    // containing a description of the error that occured, or an empty
+    // description if the deletion was a success.
+    rpc DeleteBlob (BlobId) returns (Error);
 
+    /*
     // Performs a pre-defined analysis on the Blob associated with BlobId. In
     // this case it gets the average brightness of an image.
     rpc GetAverageBrightness (BlobId) returns (DeviceResponse);
@@ -55,10 +56,10 @@ service FileServer {
     // the Payload and the updated ExpirationTime
     rpc Download (ChunkSpec) returns (Response);
 
-    /*
-    // Deletes the Blob with given BlobId, then returns the error status.
-    rpc Delete (BlobId) returns (ErrorStatus);
-    */
+    // Deletes the Blob associated with BlobId and returns an Error object
+    // containing a description of the error that occured, or an empty
+    // description if the deletion was a success.
+    rpc Delete (BlobId) returns (Error);
 }
 
 // Messages used by above services

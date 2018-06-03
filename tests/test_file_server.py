@@ -79,30 +79,30 @@ class TestAcessingDatabase(unittest.TestCase):
         self.assertEqual(actual_payload, self.payload)
         wipe_json_file(filename)
 
-    # def test_remove_by_key_db(self):
-    #     # Setup
-    #     filename = 'test_empty.json'
-    #     key = "1"
-    #     input_data = test_read_expected()
-    #     file_server.write_db(filename, input_data)
-    #     expected = input_data
-    #     del expected[key]
-    #     # Test
-    #     file_server.remove_by_key_db(filename, key)
-    #     actual = file_server.read_db(filename)
-    #     self.assertEqual(actual, expected)
-    #     wipe_json_file(filename)
-    #
-    # def test_remove_blob(self):
-    #     # Setup
-    #     filename = 'test_empty.json'
-    #     file_server.write_blob(filename, self._blob)
-    #     expected = None
-    #     # Test
-    #     file_server.remove_blob(filename, self.blob_id)
-    #     actual = file_server.read_blob_payload(filename, self.blob_id)
-    #     self.assertEqual(actual, expected)
-    #     wipe_json_file(filename)
+    def test_remove_by_key_db(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        key = "1"
+        input_data = test_read_expected()
+        file_server.write_db(filename, input_data)
+        expected = input_data
+        del expected[key]
+        # Test
+        file_server.remove_by_key_db(filename, key)
+        actual = file_server.read_db(filename)
+        self.assertEqual(actual, expected)
+        wipe_json_file(filename)
+
+    def test_remove_blob(self):
+        # Setup
+        filename = self.test_path + 'test_empty.json'
+        file_server.write_chunk(filename, self.chunk)
+        expected = None
+        # Test
+        file_server.remove_blob(filename, self.blob_id)
+        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        self.assertEqual(actual, expected)
+        wipe_json_file(filename)
 
 # class TestAcessingChunks(unittest.TestCase):
 #     @classmethod
@@ -232,6 +232,18 @@ class TestServerMethods(unittest.TestCase):
 
     def test_Save_error(self):
         # TODO test behavior when upload chunk fails
+        return
+
+    def test_Delete(self):
+        self.server.Save(self.chunk, self.context)
+        error = self.server.Delete(self.chunk, self.context)
+        self.assertEqual(error.description, "")
+
+    def test_Delete_on_non_existant_blob(self):
+        # TODO
+
+    def test_Dowload_after_delete(self):
+        # TODO after implement download
         return
 
 if __name__ == '__main__':

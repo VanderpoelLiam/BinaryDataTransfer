@@ -24,6 +24,11 @@ class UploadStub(object):
         request_serializer=binary__data__pb2.Chunk.SerializeToString,
         response_deserializer=binary__data__pb2.Response.FromString,
         )
+    self.DeleteBlob = channel.unary_unary(
+        '/binaryData.Upload/DeleteBlob',
+        request_serializer=binary__data__pb2.BlobId.SerializeToString,
+        response_deserializer=binary__data__pb2.Error.FromString,
+        )
 
 
 class UploadServicer(object):
@@ -41,7 +46,16 @@ class UploadServicer(object):
 
   def UploadChunk(self, request, context):
     """Uploads a Chunk to the server and returns the updated ExpirationTime
-    Returns an Error if there if it fails for any reason.
+    Returns an Error if it fails for any reason.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def DeleteBlob(self, request, context):
+    """Deletes the Blob associated with BlobId and returns an Error object
+    containing a description of the error that occured, or an empty
+    description if the deletion was a success.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -59,6 +73,11 @@ def add_UploadServicer_to_server(servicer, server):
           servicer.UploadChunk,
           request_deserializer=binary__data__pb2.Chunk.FromString,
           response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'DeleteBlob': grpc.unary_unary_rpc_method_handler(
+          servicer.DeleteBlob,
+          request_deserializer=binary__data__pb2.BlobId.FromString,
+          response_serializer=binary__data__pb2.Error.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
@@ -102,6 +121,11 @@ class FileServerStub(object):
         request_serializer=binary__data__pb2.ChunkSpec.SerializeToString,
         response_deserializer=binary__data__pb2.Response.FromString,
         )
+    self.Delete = channel.unary_unary(
+        '/binaryData.FileServer/Delete',
+        request_serializer=binary__data__pb2.BlobId.SerializeToString,
+        response_deserializer=binary__data__pb2.Error.FromString,
+        )
 
 
 class FileServerServicer(object):
@@ -144,6 +168,15 @@ class FileServerServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def Delete(self, request, context):
+    """Deletes the Blob associated with BlobId and returns an Error object
+    containing a description of the error that occured, or an empty
+    description if the deletion was a success.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_FileServerServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -161,6 +194,11 @@ def add_FileServerServicer_to_server(servicer, server):
           servicer.Download,
           request_deserializer=binary__data__pb2.ChunkSpec.FromString,
           response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'Delete': grpc.unary_unary_rpc_method_handler(
+          servicer.Delete,
+          request_deserializer=binary__data__pb2.BlobId.FromString,
+          response_serializer=binary__data__pb2.Error.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

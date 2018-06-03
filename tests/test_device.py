@@ -12,12 +12,6 @@ def start_server(server, server_size, filename):
         file_server.FileServerServicer(server_size, filename), server)
     server.add_insecure_port('[::]:50051')
     server.start()
-    # try:
-    #     while True:
-    #         print("\nServer is ready...")
-    #         time.sleep(_ONE_DAY_IN_SECONDS)
-    # except KeyboardInterrupt:
-    #     server.stop(0)
 
 def stop_server(server):
     server.stop(0)
@@ -62,6 +56,10 @@ class TestServerMethods(unittest.TestCase):
         expiration_time = file_server.get_expiration_time()
         updated_expiration_time = file_server.update_expiration_time(expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
+
+    def test_UploadChunk_error(self):
+        # TODO what should occur if upload chunk fails
+        return
 
     @classmethod
     def tearDownClass(self):

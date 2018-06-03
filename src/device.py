@@ -56,6 +56,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Uploads a Chunk to the server and returns the updated ExpirationTime
         Returns an Error if there if it fails for any reason.
         """
+        # TODO implement error handling
         chunk = request
         response = self.stub.Save(chunk)
         return response

@@ -143,10 +143,12 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         return status
 
     def Delete(self, request, context):
-        """request  - BlobId
-           response - ErrorStatus
+        """Deletes the Blob associated with BlobId and returns an Error object
+        containing a description of the error that occured, or an empty
+        description if the deletion was a success.
         """
-        status = delete_blob(self._DATABASE_FILENAME, request)
+        blob_id = request
+        status = delete_blob(self._DATABASE_FILENAME, blob_id)
         return status
 
 

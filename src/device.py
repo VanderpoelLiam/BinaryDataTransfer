@@ -42,13 +42,15 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         blob_spec = request
         response = self.stub.ValidateFileServer(blob_spec)
         error = response.error
+        print(error.has_occured)
         if error.has_occured:
+            return binary_data_pb2.Response(error=error)
+        else:
             valid_until = response.valid_until
             blob_info = binary_data_pb2.BlobInfo(id=self._generate_blob_id(),
                                                  valid_until=valid_until)
             return binary_data_pb2.Response(blob_info=blob_info)
-        else:
-            return binary_data_pb2.Response(error=error)
+
 
     def UploadChunk(self, request, context):
         """Uploads a Chunk to the server and returns the updated ExpirationTime
@@ -64,8 +66,14 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         containing a description of the error that occured, or an empty
         description if the deletion was a success.
         """
-        blob_id = request
-        error = self.stub.Delete(blob_id)
+        try:
+            # TODO how check type of request
+            request.id
+        except Exception:
+            error = binary_data_pb2.Error(has_occured=True, description="Request was not of type BlobId")
+        else:
+            blob_id = request
+            error = self.stub.Delete(blob_id)
         return error
 
 def serve():

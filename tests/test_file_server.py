@@ -15,6 +15,8 @@ def wipe_json_file(filename):
     with open(filename, 'w') as fp:
         json.dump(data, fp)
 
+# TODO check my methods enforce the expected types
+
 class TestAcessingDatabase(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -121,15 +123,16 @@ class TestAcessingDatabase(unittest.TestCase):
 class TestAcessingChunks(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        # self.id = 42
-        # self.payload = b"bag of bits"
-        # self.blob_id = binary_data_pb2.BlobId(id=self.id)
-        # self.index = 2
+        self.id = 42
+        self.payload = b"bag of bits"
+        self.blob_id = binary_data_pb2.BlobId(id=self.id)
+        self.index = 2
         self.test_path = "tests/"
         self.chunk_count = 10
-        # self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-        #                                     index=self.index,
-        #                                     payload=self.payload)
+        self.default_filename = self.test_path + 'test_empty.json'
+        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
+                                            index=self.index,
+                                            payload=self.payload)
     #
     # def test_create_empty_blob(self):
     #     # Setup
@@ -177,26 +180,19 @@ class TestAcessingChunks(unittest.TestCase):
     #     wipe_json_file(filename)
 
     def test_delete_blob(self):
-        assert(False)
-        # # Setup
-        # filename = 'test_empty.json'
-        # file_server.save_blob(filename, self._blob)
-        # # Test
-        # actual_status = file_server.delete_blob(filename, self.blob_id)
-        # self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
-        # self.assertFalse(actual_status.wasError)
-        # # Now check we cannot download the blob
-        # actual_blob = file_server.download_blob(filename, self.blob_id)
-        # self.assertIsNone(actual_blob)
+        # Setup
+        file_server.save_chunk(self.default_filename, self.chunk)
+        # Test
+        error = file_server.delete_blob(self.default_filename, self.blob_id)
+        self.assertFalse(error.has_occured)
 
-    def test_delete_blob_error(self):
-        assert(False)
-        # # Setup
-        # filename = 'invalid_filename'
-        # # Test
-        # actual_status = file_server.delete_blob(filename, self.blob_id)
-        # self.assertIsInstance(actual_status, binary_data_pb2.ErrorStatus)
-        # self.assertTrue(actual_status.wasError)
+    def test_delete_blob_non_existant_blob_id(self):
+        error = file_server.delete_blob(self.default_filename, self.blob_id)
+        self.assertFalse(error.has_occured)
+
+    def test_delete_blob_invalid_filename(self):
+        error = file_server.delete_blob("invalid_filename", self.blob_id)
+        self.assertTrue(error.has_occured)
     #
     # def test_save_blob_error(self):
     #     # Setup
@@ -212,6 +208,11 @@ class TestAcessingChunks(unittest.TestCase):
     #     # Test
     #     actual_blob = file_server.download_blob(filename, self.blob_id)
     #     self.assertIsNone(actual_blob)
+    def setUp(self):
+        wipe_json_file(self.default_filename)
+
+    def tearDown(self):
+        wipe_json_file(self.default_filename)
 
 class TestServerMethods(unittest.TestCase):
     @classmethod

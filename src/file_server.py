@@ -17,13 +17,14 @@ def can_create_blob(blob_spec, availible_server_space):
         expiration_time = get_expiration_time()
         return binary_data_pb2.Response(valid_until=expiration_time)
     else:
-        return binary_data_pb2.Response(error=get_error())
+        return binary_data_pb2.Response(error=get_not_enough_space_error())
 
 def have_space(blob_size, availible_server_space):
     return blob_size <= availible_server_space
 
-def get_error():
+def get_not_enough_space_error():
     return binary_data_pb2.Error(has_occured=True, description="Not enough space to store blob")
+
 
 def get_expiration_time():
     # Assume the expiration time is fixed
@@ -59,8 +60,9 @@ def delete_blob(filename, blob_id):
     except BlobNotFoundException as e:
         error = binary_data_pb2.Error(has_occured=False, description=str(e))
     except Exception as e:
-        error = error = binary_data_pb2.Error(has_occured=True, description=str(e))
+        error = binary_data_pb2.Error(has_occured=True, description=str(e))
 
+    print(type(error))
     return error
 
 def remove_blob(filename, blob_id):

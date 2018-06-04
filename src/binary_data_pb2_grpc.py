@@ -29,6 +29,11 @@ class UploadStub(object):
         request_serializer=binary__data__pb2.BlobId.SerializeToString,
         response_deserializer=binary__data__pb2.Error.FromString,
         )
+    self.GetAverageBrightness = channel.unary_unary(
+        '/binaryData.Upload/GetAverageBrightness',
+        request_serializer=binary__data__pb2.BlobId.SerializeToString,
+        response_deserializer=binary__data__pb2.Empty.FromString,
+        )
 
 
 class UploadServicer(object):
@@ -61,6 +66,14 @@ class UploadServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetAverageBrightness(self, request, context):
+    """Performs a pre-defined analysis on the Blob associated with BlobId. In
+    this case it gets the average brightness of an image.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_UploadServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -78,6 +91,11 @@ def add_UploadServicer_to_server(servicer, server):
           servicer.DeleteBlob,
           request_deserializer=binary__data__pb2.BlobId.FromString,
           response_serializer=binary__data__pb2.Error.SerializeToString,
+      ),
+      'GetAverageBrightness': grpc.unary_unary_rpc_method_handler(
+          servicer.GetAverageBrightness,
+          request_deserializer=binary__data__pb2.BlobId.FromString,
+          response_serializer=binary__data__pb2.Empty.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
@@ -100,6 +118,11 @@ class DownloadStub(object):
         request_serializer=binary__data__pb2.ChunkSpec.SerializeToString,
         response_deserializer=binary__data__pb2.Response.FromString,
         )
+    self.GetBlobInfo = channel.unary_unary(
+        '/binaryData.Download/GetBlobInfo',
+        request_serializer=binary__data__pb2.BlobId.SerializeToString,
+        response_deserializer=binary__data__pb2.BlobInfo.FromString,
+        )
 
 
 class DownloadServicer(object):
@@ -115,6 +138,13 @@ class DownloadServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetBlobInfo(self, request, context):
+    """Gets the BlobInfo assiciated with the given BlobID
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_DownloadServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -122,6 +152,11 @@ def add_DownloadServicer_to_server(servicer, server):
           servicer.GetChunk,
           request_deserializer=binary__data__pb2.ChunkSpec.FromString,
           response_serializer=binary__data__pb2.Response.SerializeToString,
+      ),
+      'GetBlobInfo': grpc.unary_unary_rpc_method_handler(
+          servicer.GetBlobInfo,
+          request_deserializer=binary__data__pb2.BlobId.FromString,
+          response_serializer=binary__data__pb2.BlobInfo.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

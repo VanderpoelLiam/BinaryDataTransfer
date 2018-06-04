@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from concurrent import futures
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.any_pb2 import Any
+from resources import read_db, write_db, remove_by_key_db
 
 import grpc
 import json
@@ -93,20 +94,6 @@ def read_chunk_payload(filename, blob_id, index):
     payload_as_string = blob[str(index)]
     payload_as_bytes = payload_as_string.encode("utf-8")
     return payload_as_bytes
-
-def read_db(filename):
-    with open(filename) as fp:
-        data = json.load(fp)
-    return data
-
-def write_db(filename, data):
-    with open(filename, 'w') as fp:
-        json.dump(data, fp)
-
-def remove_by_key_db(filename, key):
-    data = read_db(filename)
-    del data[key]
-    write_db(filename, data)
 
 class BlobNotFoundException(Exception):
     pass

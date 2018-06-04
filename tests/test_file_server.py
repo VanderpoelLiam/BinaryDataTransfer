@@ -3,17 +3,7 @@ from src import file_server
 from src.file_server import FileServerServicer
 import unittest
 import json
-
-def test_read_expected():
-    data = {}
-    for i in range(1,4):
-        data[str(i)] = "Data for blob %i" % i
-    return data
-
-def wipe_json_file(filename):
-    data = {}
-    with open(filename, 'w') as fp:
-        json.dump(data, fp)
+from resources import wipe_json_file
 
 # TODO check my methods enforce the expected types
 
@@ -31,19 +21,6 @@ class TestAcessingDatabase(unittest.TestCase):
         self.chunk1 = binary_data_pb2.Chunk(blob_id=self.blob_id,
                                             index=self.index + 1,
                                             payload=self.payload)
-
-    def test_read_db(self):
-        self.assertEqual(file_server.read_db(self.test_path + "test_read.json"), test_read_expected())
-
-    def test_write_db(self):
-        # Setup
-        filename = self.test_path + 'test_empty.json'
-        expected_data = test_read_expected()
-        # Test
-        file_server.write_db(filename, expected_data)
-        self.assertEqual(file_server.read_db(filename), expected_data)
-        actual = file_server.read_db(filename)
-        wipe_json_file(filename)
 
     def test_read_chunk_payload(self):
         # Setup
@@ -77,27 +54,6 @@ class TestAcessingDatabase(unittest.TestCase):
         self.assertEqual(actual_payload, self.payload)
         actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index + 1)
         self.assertEqual(actual_payload, self.payload)
-        wipe_json_file(filename)
-
-    def test_remove_by_key_db(self):
-        # Setup
-        filename = self.test_path + 'test_empty.json'
-        key = "1"
-        input_data = test_read_expected()
-        file_server.write_db(filename, input_data)
-        expected = input_data
-        del expected[key]
-        # Test
-        file_server.remove_by_key_db(filename, key)
-        actual = file_server.read_db(filename)
-        self.assertEqual(actual, expected)
-        wipe_json_file(filename)
-
-    def test_remove_by_key_db_non_existant_key(self):
-        # Setup
-        filename = self.test_path + 'test_empty.json'
-        # Test
-        self.assertRaises(KeyError, file_server.remove_by_key_db, filename, "invalid_key")
         wipe_json_file(filename)
 
     def test_remove_blob(self):

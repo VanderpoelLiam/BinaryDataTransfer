@@ -6,19 +6,6 @@ import binary_data_pb2_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
-# def generate_blob_id():
-#     blob_id =  get_current_blob_id()
-#     _COUNTER += 1
-#     return blob_id
-#
-# def get_current_blob_id():
-#     return binary_data_pb2.BlobId(id=_COUNTER)
-
-def get_blob_info(valid_until):
-    blob_id = generate_blob_id()
-    blob_info = binary_data_pb2.BlobInfo(id=blob_id, valid_until=valid_until)
-    return blob_info
-
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
     """Interfaces exported by the server.
     """
@@ -50,7 +37,6 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
                                                  valid_until=valid_until)
             return binary_data_pb2.Response(blob_info=blob_info)
 
-
     def UploadChunk(self, request, context):
         """Uploads a Chunk to the server and returns the updated ExpirationTime
         Returns an Error if there if it fails for any reason.
@@ -75,6 +61,12 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             error = self.stub.Delete(blob_id)
         return error
 
+    def GetAverageBrightness(self, request, context):
+        """Performs a pre-defined analysis on the Blob associated with BlobId. In
+        this case it gets the average brightness of an image.
+        """
+        return binary_data_pb2.Empty()
+
 
 class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
     """Interfaces exported by the server.
@@ -88,9 +80,15 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         Error if it fails for any reason.
         """
         chunk_spec = request
-        print(chunk_spec)
         response = self.stub.Download(chunk_spec)
         return response
+
+    def GetBlobInfo(self, request, context):
+        """Gets the BlobInfo assiciated with the given BlobID
+        """
+        blob_info = request
+        return
+
 
 
 def serve():

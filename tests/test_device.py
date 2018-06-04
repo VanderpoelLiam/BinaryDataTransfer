@@ -92,6 +92,10 @@ class TestUploadMethods(unittest.TestCase):
         error = self.servicer.DeleteBlob(self.blob_spec, self.context)
         self.assertTrue(error.has_occured)
 
+    def test_GetAverageBrightness(self):
+        response = self.servicer.GetAverageBrightness(self.blob_id, self.context)
+        self.assertEqual(response, binary_data_pb2.Empty())
+
 
 class TestDownloadMethods(unittest.TestCase):
     @classmethod
@@ -122,16 +126,22 @@ class TestDownloadMethods(unittest.TestCase):
     def tearDown(self):
         wipe_json_file(self.default_filename)
 
-    def test_GetChunk(self):
+    def _create_blob(self):
         # Create a blob on the server and upload a chunk to this blob
         creation_response = self.upload_servicer.CreateBlob(self.blob_spec, self.context)
         blob_info = creation_response.blob_info
-        id = blob_info.id
-        valid_until = blob_info.valid_until
-        chunk = binary_data_pb2.Chunk(blob_id=id,
+        chunk = binary_data_pb2.Chunk(blob_id=blob_info.id,
                                             index=self.chunk_index,
                                             payload=self.payload)
         self.upload_servicer.UploadChunk(chunk, self.context)
+        return blob_info
+
+    def test_GetChunk(self):
+        # Create a blob on the server, upload a chunk to this blob and get the
+        # resulting blob_info
+        blob_info = self._create_blob()
+        id = blob_info.id
+        valid_until = blob_info.valid_until
 
         # Specify the chunk spec and download the chunk
         chunk_spec = binary_data_pb2.ChunkSpec(blob_id=id,
@@ -145,3 +155,12 @@ class TestDownloadMethods(unittest.TestCase):
     def test_GetChunk_that_not_exist(self):
         response = self.download_servicer.GetChunk(self.chunk_spec, self.context)
         self.assertTrue(response.error.has_occured)
+
+    def test_GetBlobInfo(self):
+        expected_blob_info = self._create_blob()
+        id = expected_blob_info.id
+        actual_blob_info = self.download_servicer.GetBlobInfo(id, self.context)
+        self.assertEqual(expected_blob_info.id, actual_blob_info.id)
+        self.assertEqual(expected_blob_info.valid_until, actual_blob_info.valid_until)
+        self.assertEqual(expected_blob_info.spec.size, actual_blob_info.spec.size)
+        self.assertEqual(expected_blob_info.spec.chunk_count, actual_blob_info.spec.chunk_count)

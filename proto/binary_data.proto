@@ -22,11 +22,9 @@ service Upload {
     // description if the deletion was a success.
     rpc DeleteBlob (BlobId) returns (Error);
 
-    /*
     // Performs a pre-defined analysis on the Blob associated with BlobId. In
     // this case it gets the average brightness of an image.
-    rpc GetAverageBrightness (BlobId) returns (DeviceResponse);
-    */
+    rpc GetAverageBrightness (BlobId) returns (Empty);
 }
 
 service Download {
@@ -35,10 +33,11 @@ service Download {
     // Error if it fails for any reason.
     rpc GetChunk (ChunkSpec) returns (Response);
 
-    /*
-    // Gets the BlobInfo assiciated with the given BlobID
-    rpc GetBlobInfo (BlobId) returns (DeviceResponse);
 
+    // Gets the BlobInfo assiciated with the given BlobID
+    rpc GetBlobInfo (BlobId) returns (BlobInfo);
+
+    /*
     // Performs an Action which generates a Blob. Then returns the associated
     // BlobId. In this case it gets the measurement data of the device.
     rpc GetMeasurementData (Empty) returns (DeviceResponse);
@@ -84,6 +83,9 @@ message BlobInfo {
     // upload any more chunks to this BlobID and can not expect it to be
     // useful for commands
     ExpirationTime valid_until = 2;
+
+    // Spec used to create the Blob
+    BlobSpec spec = 3;
 }
 
 message Error {
@@ -132,21 +134,6 @@ message ChunkSpec {
     int32 index = 2;
 }
 
-
-/*
-message Blob {
-    // Unique Blob identifier
-    BlobId id = 1;
-
-    // Details about the specification used to create the Blob and when the
-    // BlobId will be invalid.
-    BlobInfo info = 2;
-
-    // Data being transferred.
-    bytes payload = 3;
-}
-
 message Empty {
 
 }
-*/

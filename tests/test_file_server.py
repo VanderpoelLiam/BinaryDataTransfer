@@ -1,26 +1,25 @@
 import unittest
 
-from src.resources_files import wipe_json_file
-
 from src import binary_data_pb2
 from src import file_server
 from src.file_server import FileServerServicer
+from src.resources_files import wipe_json_file
 
 
 class TestAcessingDatabase(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.id = 42
-        self.payload = b"bag of bits"
-        self.blob_id = binary_data_pb2.BlobId(id=self.id)
-        self.index = 2
-        self.test_path = "tests/"
-        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                           index=self.index,
-                                           payload=self.payload)
-        self.chunk1 = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                            index=self.index + 1,
-                                            payload=self.payload)
+    def setUpClass(cls):
+        cls.id = 42
+        cls.payload = b"bag of bits"
+        cls.blob_id = binary_data_pb2.BlobId(id=cls.id)
+        cls.index = 2
+        cls.test_path = "tests/"
+        cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
+                                           index=cls.index,
+                                           payload=cls.payload)
+        cls.chunk1 = binary_data_pb2.Chunk(blob_id=cls.blob_id,
+                                            index=cls.index + 1,
+                                            payload=cls.payload)
 
     def test_read_chunk_payload(self):
         # Setup
@@ -75,20 +74,20 @@ class TestAcessingDatabase(unittest.TestCase):
 
 class TestServerMethods(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.server_size = 100
-        self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
-        self.context = None
-        self.default_filename = 'tests/test_empty.json'
-        self.server = FileServerServicer(self.server_size, self.default_filename)
-        self.blob_id = binary_data_pb2.BlobId(id=42)
-        self.chunk_index = 0
-        self.payload = b"bag of bits"
-        self.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=self.blob_id,
-                                                    index=self.chunk_index)
-        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                           index=self.chunk_index,
-                                           payload=self.payload)
+    def setUpClass(cls):
+        cls.server_size = 100
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        cls.context = None
+        cls.default_filename = 'tests/test_empty.json'
+        cls.server = FileServerServicer(cls.server_size, cls.default_filename)
+        cls.blob_id = binary_data_pb2.BlobId(id=42)
+        cls.chunk_index = 0
+        cls.payload = b"bag of bits"
+        cls.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=cls.blob_id,
+                                                    index=cls.chunk_index)
+        cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
+                                           index=cls.chunk_index,
+                                           payload=cls.payload)
 
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)

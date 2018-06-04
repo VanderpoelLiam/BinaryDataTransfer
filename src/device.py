@@ -1,12 +1,11 @@
 import math
 import time
 
-from google.protobuf.json_format import MessageToJson, Parse
-
 import binary_data_pb2
 import binary_data_pb2_grpc
+from google.protobuf.json_format import MessageToJson, Parse
 from resources_files import read_db, write_db
-from resources_server import get_grpc_server
+# from resources_server import get_grpc_server
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 

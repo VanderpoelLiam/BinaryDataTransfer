@@ -1,12 +1,12 @@
 import unittest
 
+from src.device import DownloadServicer
+from src.device import UploadServicer
 from google.protobuf.json_format import MessageToJson
 
 from src import binary_data_pb2
 from src import device
 from src import file_server
-import src.device.UploadServicer as UploadServicer
-import src.device.DownloadServicer as DownloadServicer
 from src.resources_files import wipe_json_file, read_db
 from src.resources_server import start_file_server, get_file_server_stub, stop_server, get_grpc_server
 

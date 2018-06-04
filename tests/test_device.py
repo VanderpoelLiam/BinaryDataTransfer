@@ -155,9 +155,13 @@ class TestDownloadMethods(unittest.TestCase):
         self.assertTrue(response.error.has_occured)
 
     def test_GetBlobInfo(self):
+        # TODO failing due to saving to device only occuring in download blob
+        # creation
         expected_blob_info = self._create_blob()
         id = expected_blob_info.id
         actual_blob_info = self.download_servicer.GetBlobInfo(id, self.context)
+        print(MessageToJson(expected_blob_info))
+        print(MessageToJson(actual_blob_info))
         self.assertEqual(expected_blob_info.id, actual_blob_info.id)
         self.assertEqual(expected_blob_info.valid_until, actual_blob_info.valid_until)
         self.assertEqual(expected_blob_info.spec.size, actual_blob_info.spec.size)
@@ -186,6 +190,7 @@ class TestDownloadMethods(unittest.TestCase):
         blob_info = measurement_response.blob_info
         expected = device.read_blob_info(self.device_filename, id)
         self.assertEqual(blob_info, expected)
+
 
 class TestHelperMethods(unittest.TestCase):
     @classmethod

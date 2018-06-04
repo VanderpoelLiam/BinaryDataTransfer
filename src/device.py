@@ -111,9 +111,9 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
     def GetBlobInfo(self, request, context):
         """Gets the BlobInfo assiciated with the given BlobID
         """
-        blob_info = request
-        # TODO
-        return
+        blob_id = request
+        blob_info = read_blob_info(self._DATABASE_FILENAME, blob_id)
+        return blob_info
 
     def GetMeasurementData(self, request, context):
         """Performs an Action which generates a Blob on the server. Returns the
@@ -143,6 +143,7 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=0, payload=data)
         upload_response = upload_servicer.UploadChunk(chunk, context)
 
+        # TODO this should be in createBlob in upload
         # Create and Save the blob_info to the device
         blob_info = binary_data_pb2.BlobInfo(id=blob_id,
                                                 valid_until=valid_until,

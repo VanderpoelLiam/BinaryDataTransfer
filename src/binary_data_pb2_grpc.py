@@ -123,6 +123,11 @@ class DownloadStub(object):
         request_serializer=binary__data__pb2.BlobId.SerializeToString,
         response_deserializer=binary__data__pb2.BlobInfo.FromString,
         )
+    self.GetMeasurementData = channel.unary_unary(
+        '/binaryData.Download/GetMeasurementData',
+        request_serializer=binary__data__pb2.Empty.SerializeToString,
+        response_deserializer=binary__data__pb2.Response.FromString,
+        )
 
 
 class DownloadServicer(object):
@@ -145,6 +150,15 @@ class DownloadServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetMeasurementData(self, request, context):
+    """Performs an Action which generates a Blob on the server. Returns the
+    associated BlobInfo, or an Error if something goes wrong. In this case
+    the action is to get the measurement data of the device.
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_DownloadServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -157,6 +171,11 @@ def add_DownloadServicer_to_server(servicer, server):
           servicer.GetBlobInfo,
           request_deserializer=binary__data__pb2.BlobId.FromString,
           response_serializer=binary__data__pb2.BlobInfo.SerializeToString,
+      ),
+      'GetMeasurementData': grpc.unary_unary_rpc_method_handler(
+          servicer.GetMeasurementData,
+          request_deserializer=binary__data__pb2.Empty.FromString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

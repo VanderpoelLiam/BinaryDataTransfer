@@ -37,11 +37,11 @@ service Download {
     // Gets the BlobInfo assiciated with the given BlobID
     rpc GetBlobInfo (BlobId) returns (BlobInfo);
 
-    /*
-    // Performs an Action which generates a Blob. Then returns the associated
-    // BlobId. In this case it gets the measurement data of the device.
-    rpc GetMeasurementData (Empty) returns (DeviceResponse);
-    */
+
+    // Performs an Action which generates a Blob on the server. Returns the
+    // associated BlobInfo, or an Error if something goes wrong. In this case
+    // the action is to get the measurement data of the device.
+    rpc GetMeasurementData (Empty) returns (Response);
 }
 
 service FileServer {

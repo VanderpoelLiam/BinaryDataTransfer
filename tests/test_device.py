@@ -1,9 +1,11 @@
 from src.device import UploadServicer, DownloadServicer
+from google.protobuf.json_format import MessageToJson
 from src import file_server
 from src import device
 from src import binary_data_pb2
 from src import binary_data_pb2_grpc
 from concurrent import futures
+from resources import wipe_json_file, read_db
 import unittest
 import grpc
 import json
@@ -21,11 +23,6 @@ def get_stub():
     channel = grpc.insecure_channel('localhost:50051')
     stub = binary_data_pb2_grpc.FileServerStub(channel)
     return stub
-
-def wipe_json_file(filename):
-    data = {}
-    with open(filename, 'w') as fp:
-        json.dump(data, fp)
 
 
 class TestUploadMethods(unittest.TestCase):
@@ -105,9 +102,10 @@ class TestDownloadMethods(unittest.TestCase):
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
         self.default_filename = 'tests/test_empty.json'
+        self.device_filename = 'tests/test_store_blob_info.json'
         start_server(self.server, self.server_size, self.default_filename)
         self.upload_servicer = UploadServicer(get_stub())
-        self.download_servicer = DownloadServicer(get_stub())
+        self.download_servicer = DownloadServicer(get_stub(), self.device_filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"
@@ -164,3 +162,55 @@ class TestDownloadMethods(unittest.TestCase):
         self.assertEqual(expected_blob_info.valid_until, actual_blob_info.valid_until)
         self.assertEqual(expected_blob_info.spec.size, actual_blob_info.spec.size)
         self.assertEqual(expected_blob_info.spec.chunk_count, actual_blob_info.spec.chunk_count)
+
+    def test_GetMeasurementData_responds(self):
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty, self.context)
+        blob_info = response.blob_info
+        data, size = device.performMeasurement()
+        self.assertEqual(blob_info.spec.size, size)
+        self.assertEqual(blob_info.spec.chunk_count, 1)
+        self.assertFalse(response.error.has_occured)
+        self.assertEqual(response.valid_until, file_server.get_expiration_time())
+
+    def test_GetMeasurementData_saves_to_server(self):
+        measurement_response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty, self.context)
+        data, size = device.performMeasurement()
+        id = measurement_response.blob_info.id
+        chunk_spec = binary_data_pb2.ChunkSpec(blob_id=id, index=0)
+        chunk_response = self.download_servicer.GetChunk(chunk_spec, self.context)
+        self.assertEqual(data, chunk_response.payload)
+
+    def test_GetMeasurementData_stores_blob_info(self):
+        measurement_response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty, self.context)
+        id = measurement_response.blob_info.id
+        blob_info = measurement_response.blob_info
+        expected = device.read_blob_info(self.device_filename, id)
+        self.assertEqual(blob_info, expected)
+
+class TestHelperMethods(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        self.default_filename = 'tests/test_empty.json'
+        self.blob_id = binary_data_pb2.BlobId(id=42)
+        self.valid_until = file_server.get_expiration_time()
+        self.blob_info = binary_data_pb2.BlobInfo(id=self.blob_id,
+                                                valid_until=self.valid_until,
+                                                spec=self.blob_spec)
+
+    def setUp(self):
+        wipe_json_file(self.default_filename)
+
+    def tearDown(self):
+        wipe_json_file(self.default_filename)
+
+    def test_save_blob_info(self):
+        device.save_blob_info(self.default_filename, self.blob_info)
+        id = str(self.blob_id.id)
+        data = read_db(self.default_filename)[id]
+        self.assertEqual(data, MessageToJson(self.blob_info))
+
+    def test_save_and_read_blob_info(self):
+        device.save_blob_info(self.default_filename, self.blob_info)
+        blob_info = device.read_blob_info(self.default_filename, self.blob_id)
+        self.assertEqual(blob_info, self.blob_info)

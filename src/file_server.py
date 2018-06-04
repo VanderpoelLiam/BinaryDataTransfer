@@ -86,9 +86,6 @@ def write_chunk(filename, chunk):
     write_db(filename, data)
 
 def read_chunk_payload(filename, blob_id, index):
-    """
-    Returns None if no blob with the given id and index is found.
-    """
     data = read_db(filename)
     blob = data[str(blob_id.id)]
     payload_as_string = blob[str(index)]

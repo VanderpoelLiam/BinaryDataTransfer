@@ -1,6 +1,8 @@
 from concurrent import futures
 from resources import read_db, write_db
 from google.protobuf.json_format import MessageToJson, Parse
+from PIL import Image
+
 import grpc
 import time
 import math
@@ -11,8 +13,8 @@ import binary_data_pb2_grpc
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 def performMeasurement():
+    # TODO measurement should just be opening the image of the puppy
     data = b'This is some data'
-    # TODO how get size of bytes object above in bits
     size = 1
     return (data, size)
 
@@ -28,6 +30,18 @@ def read_blob_info(filename, blob_id):
     temp = data[key]
     blob_info = Parse(data[key], binary_data_pb2.BlobInfo())
     return blob_info
+
+def average_image_brightness(im):
+    im_grey = im.convert('LA') # convert to grayscale
+    width, height = im.size
+
+    total = 0
+    for i in range(0, width):
+        for j in range(0,height):
+            total += img.getpixel((i,j))[0]
+
+    mean = total / (width * height)
+    return mean
 
 
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
@@ -71,7 +85,6 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Uploads a Chunk to the server and returns the updated ExpirationTime
         Returns an Error if there if it fails for any reason.
         """
-        # TODO implement error handling
         chunk = request
         response = self.stub.Save(chunk)
         return response
@@ -82,7 +95,6 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         description if the deletion was a success.
         """
         try:
-            # TODO how check type of request
             request.id
         except Exception:
             error = binary_data_pb2.Error(has_occured=True, description="Request was not of type BlobId")

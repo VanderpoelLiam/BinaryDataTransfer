@@ -73,10 +73,6 @@ class TestUploadMethods(unittest.TestCase):
         updated_expiration_time = file_server.update_expiration_time(expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
 
-    def test_UploadChunk_error(self):
-        # TODO what should occur if upload chunk fails
-        return
-
     def test_DeleteBlob(self):
         error = self.servicer.DeleteBlob(self.blob_id, self.context)
         self.assertFalse(error.has_occured)
@@ -156,7 +152,6 @@ class TestDownloadMethods(unittest.TestCase):
         self.assertTrue(response.error.has_occured)
 
     def test_GetBlobInfo(self):
-        # TODO failing due to saving to device only occuring in download blob
         expected_blob_info = self._create_blob()
         id = expected_blob_info.id
         actual_blob_info = self.download_servicer.GetBlobInfo(id, self.context)

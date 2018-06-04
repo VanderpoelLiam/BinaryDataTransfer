@@ -5,7 +5,6 @@ import unittest
 import json
 from resources import wipe_json_file
 
-# TODO check my methods enforce the expected types
 
 class TestAcessingDatabase(unittest.TestCase):
     @classmethod
@@ -72,55 +71,6 @@ class TestAcessingDatabase(unittest.TestCase):
         self.assertRaises(file_server.BlobNotFoundException, file_server.remove_blob, filename, self.blob_id)
         wipe_json_file(filename)
 
-class TestAcessingChunks(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        self.id = 42
-        self.payload = b"bag of bits"
-        self.blob_id = binary_data_pb2.BlobId(id=self.id)
-        self.index = 2
-        self.test_path = "tests/"
-        self.chunk_count = 10
-        self.default_filename = self.test_path + 'test_empty.json'
-        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                            index=self.index,
-                                            payload=self.payload)
-
-    def test_delete_blob(self):
-        # Setup
-        file_server.save_chunk(self.default_filename, self.chunk)
-        # Test
-        error = file_server.delete_blob(self.default_filename, self.blob_id)
-        self.assertFalse(error.has_occured)
-
-    def test_delete_blob_non_existant_blob_id(self):
-        error = file_server.delete_blob(self.default_filename, self.blob_id)
-        self.assertFalse(error.has_occured)
-
-    def test_delete_blob_invalid_filename(self):
-        error = file_server.delete_blob("invalid_filename", self.blob_id)
-        self.assertTrue(error.has_occured)
-
-    def test_save_chunk(self):
-        response = file_server.save_chunk(self.default_filename, self.chunk)
-        self.assertFalse(response.error.has_occured)
-        expiration_time = file_server.get_expiration_time()
-        updated_expiration_time = file_server.update_expiration_time(expiration_time)
-        self.assertEqual(response.valid_until, updated_expiration_time)
-
-    def test_save_blob_error(self):
-        # TODO
-        return
-
-    # TODO all these tests do the exact same thing as the server method tests,
-    # os shoudl move all tests there
-
-    def setUp(self):
-        wipe_json_file(self.default_filename)
-
-    def tearDown(self):
-        wipe_json_file(self.default_filename)
-
 class TestServerMethods(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -154,10 +104,6 @@ class TestServerMethods(unittest.TestCase):
         expiration_time = file_server.get_expiration_time()
         updated_expiration_time = file_server.update_expiration_time(expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
-
-    def test_Save_error(self):
-        # TODO test behavior when upload chunk fails
-        return
 
     def test_Delete(self):
         self.server.Save(self.chunk, self.context)

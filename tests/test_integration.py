@@ -32,6 +32,7 @@ class TestIntegration(unittest.TestCase):
         blob_size = os.stat(image_filename).st_size * 8
         chunk_count = 10000
         blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
+        # TODO get the following line to work
         # response = self.upload_servicer.CreateBlob(blob_spec, None)
 
 

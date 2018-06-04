@@ -6,6 +6,8 @@ import binary_data_pb2_grpc
 import device
 import file_server
 
+# TODO I think start_upload_server is doing too much, let the device have its
+# own method that starts a file server <-- START HERE
 
 def start_file_server(server, server_size, filename, port):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(

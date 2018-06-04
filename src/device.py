@@ -29,12 +29,14 @@ def read_blob_info(filename, blob_id):
     blob_info = Parse(data[key], binary_data_pb2.BlobInfo())
     return blob_info
 
+
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
     """Interfaces exported by the server.
     """
-    def __init__(self, file_server_stub):
+    def __init__(self, file_server_stub, database_filename):
         self.stub = file_server_stub
         self._COUNTER = 0
+        self._DATABASE_FILENAME = database_filename
 
     def _generate_blob_id(self):
         blob_id = self._get_current_blob_id()
@@ -52,13 +54,17 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         blob_spec = request
         response = self.stub.ValidateFileServer(blob_spec)
         error = response.error
+
         if error.has_occured:
             return binary_data_pb2.Response(error=error)
         else:
+            # Create and Save the blob_info to the device
             valid_until = response.valid_until
             id = self._generate_blob_id()
             blob_info = binary_data_pb2.BlobInfo(id=id,
-                                                 valid_until=valid_until)
+                                                 valid_until=valid_until,
+                                                 spec=blob_spec)
+            save_blob_info(self._DATABASE_FILENAME, blob_info)
             return binary_data_pb2.Response(blob_info=blob_info)
 
     def UploadChunk(self, request, context):
@@ -132,7 +138,7 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
 
         # Define spec and create a blob to store this data on the server
         blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
-        upload_servicer = UploadServicer(self.stub)
+        upload_servicer = UploadServicer(self.stub, self._DATABASE_FILENAME)
         creation_response = upload_servicer.CreateBlob(blob_spec, context)
 
         # Rename relevant variables
@@ -143,15 +149,11 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=0, payload=data)
         upload_response = upload_servicer.UploadChunk(chunk, context)
 
-        # TODO this should be in createBlob in upload
-        # Create and Save the blob_info to the device
+        # Create a new response that is the same as the creation_response but
+        # adds the above blob_spec to the blob_info
         blob_info = binary_data_pb2.BlobInfo(id=blob_id,
                                                 valid_until=valid_until,
                                                 spec=blob_spec)
-        save_blob_info(self._DATABASE_FILENAME, blob_info)
-
-        # Create a new response that is the same as the creation_response but
-        # adds the above blob_spec to the blob_info
         response = binary_data_pb2.Response(valid_until=valid_until,
                                             error=creation_response.error,
                                             blob_info=blob_info)

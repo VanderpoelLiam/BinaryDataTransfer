@@ -32,9 +32,10 @@ class TestUploadMethods(unittest.TestCase):
         self.server_size = 100
         self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         self.context = None
+        self.device_filename = 'tests/test_store_blob_info.json'
         self.default_filename = 'tests/test_empty.json'
         start_server(self.server, self.server_size, self.default_filename)
-        self.servicer = UploadServicer(get_stub())
+        self.servicer = UploadServicer(get_stub(), self.device_filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"
@@ -104,7 +105,7 @@ class TestDownloadMethods(unittest.TestCase):
         self.default_filename = 'tests/test_empty.json'
         self.device_filename = 'tests/test_store_blob_info.json'
         start_server(self.server, self.server_size, self.default_filename)
-        self.upload_servicer = UploadServicer(get_stub())
+        self.upload_servicer = UploadServicer(get_stub(), self.device_filename)
         self.download_servicer = DownloadServicer(get_stub(), self.device_filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
@@ -156,7 +157,6 @@ class TestDownloadMethods(unittest.TestCase):
 
     def test_GetBlobInfo(self):
         # TODO failing due to saving to device only occuring in download blob
-        # creation
         expected_blob_info = self._create_blob()
         id = expected_blob_info.id
         actual_blob_info = self.download_servicer.GetBlobInfo(id, self.context)

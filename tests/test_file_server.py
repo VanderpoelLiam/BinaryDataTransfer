@@ -1,9 +1,10 @@
+import unittest
+
+from src.resources_files import wipe_json_file
+
 from src import binary_data_pb2
 from src import file_server
 from src.file_server import FileServerServicer
-import unittest
-import json
-from resources import wipe_json_file
 
 
 class TestAcessingDatabase(unittest.TestCase):
@@ -15,8 +16,8 @@ class TestAcessingDatabase(unittest.TestCase):
         self.index = 2
         self.test_path = "tests/"
         self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                            index=self.index,
-                                            payload=self.payload)
+                                           index=self.index,
+                                           payload=self.payload)
         self.chunk1 = binary_data_pb2.Chunk(blob_id=self.blob_id,
                                             index=self.index + 1,
                                             payload=self.payload)
@@ -71,6 +72,7 @@ class TestAcessingDatabase(unittest.TestCase):
         self.assertRaises(file_server.BlobNotFoundException, file_server.remove_blob, filename, self.blob_id)
         wipe_json_file(filename)
 
+
 class TestServerMethods(unittest.TestCase):
     @classmethod
     def setUpClass(self):
@@ -83,10 +85,10 @@ class TestServerMethods(unittest.TestCase):
         self.chunk_index = 0
         self.payload = b"bag of bits"
         self.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=self.blob_id,
-                                            index=self.chunk_index)
+                                                    index=self.chunk_index)
         self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                            index=self.chunk_index,
-                                            payload=self.payload)
+                                           index=self.chunk_index,
+                                           payload=self.payload)
 
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)
@@ -140,6 +142,7 @@ class TestServerMethods(unittest.TestCase):
 
     def tearDown(self):
         wipe_json_file(self.default_filename)
+
 
 if __name__ == '__main__':
     unittest.main()

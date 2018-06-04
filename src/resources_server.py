@@ -3,13 +3,13 @@ from concurrent import futures
 import grpc
 
 from src import binary_data_pb2_grpc
-from src.device import UploadServicer
-from src.file_server import FileServerServicer
+from src import device
+from src import file_server
 
 
 def start_file_server(server, server_size, filename, port):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        FileServerServicer(server_size, filename), server)
+        file_server.FileServerServicer(server_size, filename), server)
     server.add_insecure_port('[::]:' + port)
     server.start()
 
@@ -21,7 +21,7 @@ def start_upload_server(server_files, server_device, device_filename, file_serve
     # Start an upload server
     file_server_stub = get_file_server_stub(file_port)
     binary_data_pb2_grpc.add_UploadServicer_to_server(
-        UploadServicer(file_server_stub, device_filename), server_device)
+        device.UploadServicer(file_server_stub, device_filename), server_device)
     server_device.add_insecure_port('[::]:' + device_port)
     server_device.start()
 

@@ -1,7 +1,7 @@
-import grpc
-
 import binary_data_pb2
 import binary_data_pb2_grpc
+import grpc
+
 
 def run():
     channel = grpc.insecure_channel('localhost:50051')

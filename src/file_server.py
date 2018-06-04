@@ -1,14 +1,12 @@
-from datetime import datetime, timedelta
-from concurrent import futures
-from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.any_pb2 import Any
-from resources import read_db, write_db, remove_by_key_db
-
-import grpc
-import json
 import time
+from datetime import datetime, timedelta
+
+from google.protobuf.timestamp_pb2 import Timestamp
+
 import binary_data_pb2
 import binary_data_pb2_grpc
+from resources_files import read_db, write_db, remove_by_key_db
+from resources_server import get_grpc_server
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -20,17 +18,21 @@ def can_create_blob(blob_spec, availible_server_space):
     else:
         return binary_data_pb2.Response(error=get_not_enough_space_error())
 
+
 def have_space(blob_size, availible_server_space):
     return blob_size <= availible_server_space
+
 
 def get_not_enough_space_error():
     return binary_data_pb2.Error(has_occured=True, description="Not enough space to store blob")
 
+
 def get_expiration_time():
     # Assume the expiration time is fixed
     expiration_time = Timestamp()
-    expiration_time.FromDatetime(datetime(day=1,month=2,year=2019) + timedelta(days=365))
+    expiration_time.FromDatetime(datetime(day=1, month=2, year=2019) + timedelta(days=365))
     return binary_data_pb2.ExpirationTime(time=expiration_time)
+
 
 def update_expiration_time(time):
     expiration_time_dt = Timestamp.ToDatetime(time.time)
@@ -38,6 +40,7 @@ def update_expiration_time(time):
     expiration_time = Timestamp()
     expiration_time.FromDatetime(expiration_time_dt)
     return binary_data_pb2.ExpirationTime(time=expiration_time)
+
 
 def download_chunk(filename, chunk_spec):
     try:
@@ -51,6 +54,7 @@ def download_chunk(filename, chunk_spec):
 
     return response
 
+
 def delete_blob(filename, blob_id):
     try:
         remove_blob(filename, blob_id)
@@ -62,16 +66,19 @@ def delete_blob(filename, blob_id):
 
     return error
 
+
 def remove_blob(filename, blob_id):
     try:
         remove_by_key_db(filename, str(blob_id.id))
     except KeyError:
         raise BlobNotFoundException("No blob with this id is saved")
 
+
 def save_chunk(filename, chunk):
     write_chunk(filename, chunk)
     expiration_time = update_expiration_time(get_expiration_time())
     return binary_data_pb2.Response(valid_until=expiration_time)
+
 
 def write_chunk(filename, chunk):
     data = read_db(filename)
@@ -85,6 +92,7 @@ def write_chunk(filename, chunk):
     data[blob_id][index] = payload_as_string
     write_db(filename, data)
 
+
 def read_chunk_payload(filename, blob_id, index):
     data = read_db(filename)
     blob = data[str(blob_id.id)]
@@ -92,12 +100,15 @@ def read_chunk_payload(filename, blob_id, index):
     payload_as_bytes = payload_as_string.encode("utf-8")
     return payload_as_bytes
 
+
 class BlobNotFoundException(Exception):
     pass
+
 
 class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
     """Interfaces exported by the server.
     """
+
     def __init__(self, availible_server_space, database_filename):
         # self._DATABASE_FILENAME = 'binary_data_db.json'
         self._DATABASE_FILENAME = database_filename
@@ -129,7 +140,6 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         response = download_chunk(self._DATABASE_FILENAME, chunk_spec)
         return response
 
-
     def Delete(self, request, context):
         """Deletes the Blob associated with BlobId and returns an Error object
         containing a description of the error that occured, or an empty
@@ -141,7 +151,7 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
 
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = get_grpc_server()
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
         FileServerServicer(), server)
     server.add_insecure_port('[::]:50051')

@@ -1,28 +1,29 @@
-from concurrent import futures
-from resources import read_db, write_db
-from google.protobuf.json_format import MessageToJson, Parse
-from PIL import Image
-
-import grpc
-import time
 import math
+import time
+
+from google.protobuf.json_format import MessageToJson, Parse
+
 import binary_data_pb2
 import binary_data_pb2_grpc
-
+from resources_files import read_db, write_db
+from resources_server import get_grpc_server
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
-def performMeasurement():
+
+def perform_measurement():
     # TODO measurement should just be opening the image of the puppy
     data = b'This is some data'
     size = 1
     return (data, size)
+
 
 def save_blob_info(filename, blob_info):
     data = read_db(filename)
     blob_id = str(blob_info.id.id)
     data[blob_id] = MessageToJson(blob_info)
     write_db(filename, data)
+
 
 def read_blob_info(filename, blob_id):
     data = read_db(filename)
@@ -31,14 +32,15 @@ def read_blob_info(filename, blob_id):
     blob_info = Parse(data[key], binary_data_pb2.BlobInfo())
     return blob_info
 
+
 def average_image_brightness(im):
-    im_grey = im.convert('LA') # convert to grayscale
+    im_grey = im.convert('LA')  # convert to grayscale
     width, height = im.size
 
     total = 0
     for i in range(0, width):
-        for j in range(0,height):
-            total += img.getpixel((i,j))[0]
+        for j in range(0, height):
+            total += img.getpixel((i, j))[0]
 
     mean = total / (width * height)
     return mean
@@ -47,6 +49,7 @@ def average_image_brightness(im):
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
     """Interfaces exported by the server.
     """
+
     def __init__(self, file_server_stub, database_filename):
         self.stub = file_server_stub
         self._COUNTER = 0
@@ -113,6 +116,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
 class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
     """Interfaces exported by the server.
     """
+
     def __init__(self, file_server_stub, database_filename):
         self.stub = file_server_stub
         self._DATABASE_FILENAME = database_filename
@@ -140,13 +144,13 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         """
         # Perform an action which generates the following bytes of data
         # and the size in bits
-        data, size = performMeasurement()
+        data, size = perform_measurement()
 
         # max_chunk_size is likely a property of the server, but we simply fix it
         max_chunk_size = size
 
         # This is 1 due to above line
-        chunk_count = math.ceil(size/max_chunk_size)
+        chunk_count = math.ceil(size / max_chunk_size)
 
         # Define spec and create a blob to store this data on the server
         blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
@@ -164,8 +168,8 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         # Create a new response that is the same as the creation_response but
         # adds the above blob_spec to the blob_info
         blob_info = binary_data_pb2.BlobInfo(id=blob_id,
-                                                valid_until=valid_until,
-                                                spec=blob_spec)
+                                             valid_until=valid_until,
+                                             spec=blob_spec)
         response = binary_data_pb2.Response(valid_until=valid_until,
                                             error=creation_response.error,
                                             blob_info=blob_info)
@@ -173,9 +177,8 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         return response
 
 
-
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = get_grpc_server()
     binary_data_pb2_grpc.add_UploadServicer_to_server(
         UploadServicer(), server)
     server.add_insecure_port('[::]:50051')

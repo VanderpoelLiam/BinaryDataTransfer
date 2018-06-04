@@ -1,11 +1,14 @@
 import unittest
-from resources import read_db, write_db, remove_by_key_db, wipe_json_file
+
+from src.resources_files import read_db, write_db, remove_by_key_db, wipe_json_file
+
 
 def test_read_expected():
     data = {}
-    for i in range(1,4):
+    for i in range(1, 4):
         data[str(i)] = "Data for blob %i" % i
     return data
+
 
 class TestBasicMethods(unittest.TestCase):
     @classmethod

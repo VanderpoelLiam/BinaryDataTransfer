@@ -1,10 +1,9 @@
 from concurrent import futures
 
+import binary_data_pb2_grpc
+import file_server
 import grpc
 
-import binary_data_pb2_grpc
-import device
-import file_server
 
 def start_file_server(server, server_size, filename):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(

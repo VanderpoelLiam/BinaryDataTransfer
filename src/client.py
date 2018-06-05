@@ -1,10 +1,10 @@
-import grpc
+import math
 import os
+
 import binary_data_pb2
 import binary_data_pb2_grpc
-import math
 import device
-from google.protobuf.json_format import MessageToJson
+import grpc
 
 
 def run():
@@ -17,7 +17,7 @@ def run():
     image_filename = '../images/cat.png'
     blob_size = os.stat(image_filename).st_size # File size in bytes
     chunk_count = 10
-    chunk_size = math.ceil(blob_size/chunk_count) # Overestimate chunk_size
+    chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
 
     # Create the Blob to store the cat image
     blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
@@ -47,7 +47,7 @@ def run():
 
             # Create the corresponding chunk
             chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=i,
-                                            payload=payload)
+                                          payload=payload)
 
             # Add it to the chunk array
             chunks.append(chunk)

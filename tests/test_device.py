@@ -1,16 +1,17 @@
 import unittest
-from PIL import Image
 import math
+import os
 
-from src.device import DownloadServicer
-from src.device import UploadServicer
 from google.protobuf.json_format import MessageToJson
 
 from src import binary_data_pb2
 from src import device
 from src import file_server
+from src.device import DownloadServicer
+from src.device import UploadServicer
 from src.resources_files import wipe_json_file, read_db
-from src.resources_server import start_file_server, get_file_server_stub, stop_server, get_grpc_server
+from src.resources_server import start_file_server, get_file_server_stub, \
+    stop_server, get_grpc_server
 
 
 class TestUploadMethods(unittest.TestCase):
@@ -18,30 +19,34 @@ class TestUploadMethods(unittest.TestCase):
     def setUpClass(cls):
         cls.server = get_grpc_server()
         cls.server_size = 100
-        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=10, chunk_count=2)
         cls.context = None
         cls.device_filename = 'tests/test_store_blob_info.json'
         cls.default_filename = 'tests/test_empty.json'
         start_file_server(cls.server, cls.server_size, cls.default_filename)
-        cls.servicer = UploadServicer(get_file_server_stub(), cls.device_filename)
+        cls.servicer = UploadServicer(get_file_server_stub(),
+                                      cls.device_filename)
         cls.blob_id = binary_data_pb2.BlobId(id=42)
         cls.chunk_index = 0
         cls.payload = b"bag of bits"
         cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
-                                           index=cls.chunk_index,
-                                           payload=cls.payload)
+                                          index=cls.chunk_index,
+                                          payload=cls.payload)
 
     @classmethod
-    def tearDownClass(self):
-        stop_server(self.server)
+    def tearDownClass(cls):
+        stop_server(cls.server)
 
     def setUp(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def tearDown(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def test_CreateBlob(self):
+        # TODO fix issue with below response line
         response = self.servicer.CreateBlob(self.blob_spec, self.context)
         blob_info = response.blob_info
         self.assertEqual(blob_info.valid_until, file_server.get_expiration_time())
@@ -91,34 +96,36 @@ class TestUploadMethods(unittest.TestCase):
 
 class TestDownloadMethods(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.server = get_grpc_server()
-        self.server_size = 100
-        self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
-        self.context = None
-        self.default_filename = 'tests/test_empty.json'
-        self.device_filename = 'tests/test_store_blob_info.json'
-        start_file_server(self.server, self.server_size, self.default_filename)
-        self.upload_servicer = UploadServicer(get_file_server_stub(), self.device_filename)
-        self.download_servicer = DownloadServicer(get_file_server_stub(), self.device_filename)
-        self.blob_id = binary_data_pb2.BlobId(id=42)
-        self.chunk_index = 0
-        self.payload = b"bag of bits"
-        self.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=self.blob_id,
-                                                    index=self.chunk_index)
-        self.chunk = binary_data_pb2.Chunk(blob_id=self.blob_id,
-                                           index=self.chunk_index,
-                                           payload=self.payload)
+    def setUpClass(cls):
+        cls.server = get_grpc_server()
+        cls.server_size = 100
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        cls.context = None
+        cls.default_filename = 'tests/test_empty.json'
+        cls.device_filename = 'tests/test_store_blob_info.json'
+        start_file_server(cls.server, cls.server_size, cls.default_filename)
+        cls.upload_servicer = UploadServicer(get_file_server_stub(), cls.device_filename)
+        cls.download_servicer = DownloadServicer(get_file_server_stub(), cls.device_filename)
+        cls.blob_id = binary_data_pb2.BlobId(id=42)
+        cls.chunk_index = 0
+        cls.payload = b"bag of bits"
+        cls.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=cls.blob_id,
+                                                    index=cls.chunk_index)
+        cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
+                                           index=cls.chunk_index,
+                                           payload=cls.payload)
 
     @classmethod
-    def tearDownClass(self):
-        stop_server(self.server)
+    def tearDownClass(cls):
+        stop_server(cls.server)
 
     def setUp(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def tearDown(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def _create_blob(self):
         # Create a blob on the server and upload a chunk to this blob
@@ -194,20 +201,36 @@ class TestDownloadMethods(unittest.TestCase):
 
 class TestHelperMethods(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
-        self.default_filename = 'tests/test_empty.json'
-        self.blob_id = binary_data_pb2.BlobId(id=42)
-        self.valid_until = file_server.get_expiration_time()
-        self.blob_info = binary_data_pb2.BlobInfo(id=self.blob_id,
-                                                  valid_until=self.valid_until,
-                                                  spec=self.blob_spec)
+    def setUpClass(cls):
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        cls.default_filename = 'tests/test_empty.json'
+        cls.blob_id = binary_data_pb2.BlobId(id=42)
+        cls.valid_until = file_server.get_expiration_time()
+        cls.blob_info = binary_data_pb2.BlobInfo(id=cls.blob_id,
+                                                  valid_until=cls.valid_until,
+                                                  spec=cls.blob_spec)
+
+        cls.server = get_grpc_server()
+        cls.server_size = math.inf
+        cls.default_filename = 'tests/test_empty.json'
+        cls.device_filename = 'tests/test_store_blob_info.json'
+        start_file_server(cls.server, cls.server_size, cls.default_filename)
+        cls.upload_servicer = UploadServicer(get_file_server_stub(),
+                                             cls.device_filename)
+        cls.download_servicer = DownloadServicer(get_file_server_stub(),
+                                                 cls.device_filename)
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_server(cls.server)
 
     def setUp(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def tearDown(self):
         wipe_json_file(self.default_filename)
+        wipe_json_file(self.device_filename)
 
     def test_save_blob_info(self):
         device.save_blob_info(self.default_filename, self.blob_info)
@@ -219,3 +242,30 @@ class TestHelperMethods(unittest.TestCase):
         device.save_blob_info(self.default_filename, self.blob_info)
         blob_info = device.read_blob_info(self.default_filename, self.blob_id)
         self.assertEqual(blob_info, self.blob_info)
+
+    def test_upload_image(self):
+        image_filename = 'images/puppy.jpg'
+        size = os.stat(image_filename).st_size  # File size in bytes
+        chunk_count = 10
+        chunk_size = math.ceil(size / chunk_count)
+
+        # Define spec and create a blob to store this data on the server
+        blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
+        creation_response = self.upload_servicer.CreateBlob(blob_spec, None)
+
+        blob_id = creation_response.blob_info.id
+
+        upload_response = device.upload_image(self.upload_servicer,
+                                              image_filename, blob_id,
+                                              chunk_count, chunk_size)
+        self.assertFalse(upload_response.error.has_occured)
+
+    def test_upload_image_error(self):
+        # TODO
+        return
+
+    def test_perform_measurement(self):
+        blob_info = device.perform_measurement()
+        blob_id = blob_info.id
+        self.assertEqual(blob_info, self.download_servicer.GetBlobInfo(blob_id))
+

@@ -1,50 +1,56 @@
 import math
-import time
-from PIL import Image
 import os
+import time
 
 import binary_data_pb2
 import binary_data_pb2_grpc
+import file_server
+import resources_server
+from PIL import Image
 from google.protobuf.json_format import MessageToJson, Parse
 from resources_files import read_db, write_db
-import resources_server
-import file_server
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-def perform_measurement():
-    image_filename = '../images/puppy.jpg'
-    size = os.stat(image_filename).st_size # File size in bytes
-    chunk_count = 10
-
-    # Define spec and create a blob to store this data on the server
-    blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
-    creation_response = UploadServicer.CreateBlob(blob_spec)
-
-    # Rename relevant variables
-    blob_id = creation_response.blob_info.id
-    valid_until = creation_response.blob_info.valid_until
-
-    # Check there were no issues
-    assert(creation_response.error.has_occured == False)
-
+def upload_image(servicer, image_filename, blob_id, chunk_count, chunk_size):
     # Break up the image into chunks and upload it
     with open(image_filename, "rb") as binary_file:
         for i in range(0, chunk_count):
             # Seek the ith chunk location and read chunk_size bytes
-            binary_file.seek(i*chunk_size)
+            binary_file.seek(i * chunk_size)
             payload = binary_file.read(chunk_size)
 
             # Create the corresponding chunk
             chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=i,
-                                            payload=payload)
+                                          payload=payload)
 
             # Upload it
-            upload_response = UploadServicer.UploadChunk(chunk)
+            upload_response = servicer.UploadChunk(chunk, None)
 
             # Check there were no issues
-            assert(upload_response.error.has_occured == False)
+            if upload_response.error.has_occured:
+                return binary_data_pb2.Response(error=upload_response.error)
+
+    return binary_data_pb2.Response()
+
+
+def perform_measurement():
+    image_filename = 'images/puppy.jpg'
+    size = os.stat(image_filename).st_size # File size in bytes
+    chunk_count = 10
+    chunk_size = math.ceil(size/chunk_count)
+
+    # Define spec and create a blob to store this data on the server
+    blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
+    # upload_servicer = UploadServicer(self.stub, self._DATABASE_FILENAME)
+    # creation_response = upload_servicer.CreateBlob(blob_spec, None)
+
+    upload_image(upload_servicer, image_filename, blob_id, chunk_count, chunk_size)
+
+    # Rename relevant variables
+    blob_id = creation_response.blob_info.id
+    valid_until = creation_response.blob_info.valid_until
 
     # Returns the blob info of the uploaded blob
     blob_info = binary_data_pb2.BlobInfo(id=blob_id,
@@ -116,9 +122,9 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         not enough space.
         """
         blob_spec = request
-        # print("Before ValidateFileServer")
+        print("Before ValidateFileServer")
         response = self.stub.ValidateFileServer(blob_spec)
-        # print("After ValidateFileServer")
+        print("After ValidateFileServer")
         error = response.error
 
         if error.has_occured:
@@ -130,9 +136,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             blob_info = binary_data_pb2.BlobInfo(id=id,
                                                  valid_until=valid_until,
                                                  spec=blob_spec)
-            # print("Before save_blob_info")
             save_blob_info(self._DATABASE_FILENAME, blob_info)
-            # print("After save_blob_info")
             return binary_data_pb2.Response(blob_info=blob_info)
 
     def UploadChunk(self, request, context):

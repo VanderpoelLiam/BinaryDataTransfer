@@ -1,5 +1,6 @@
 import math
 import time
+from PIL import Image
 
 import binary_data_pb2
 import binary_data_pb2_grpc
@@ -44,11 +45,17 @@ def average_image_brightness(im):
     total = 0
     for i in range(0, width):
         for j in range(0, height):
-            total += img.getpixel((i, j))[0]
+            total += im.getpixel((i, j))[0]
 
-    mean = total / (width * height)
+    mean = total // (width * height)
     return mean
 
+
+def bytes_to_int(bytes):
+    return int.from_bytes(bytes, byteorder='big', signed=False)
+
+def int_to_bytes(i):
+    return i.to_bytes(1, byteorder='big', signed=False)
 
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
     """Interfaces exported by the server.
@@ -118,7 +125,48 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Performs a pre-defined analysis on the Blob associated with BlobId. In
         this case it gets the average brightness of an image.
         """
-        return binary_data_pb2.Empty()
+        blob_id = request
+
+        # Get the chunk_count and blob_size
+        blob_info = read_blob_info(self._DATABASE_FILENAME, blob_id)
+        chunk_count = blob_info.spec.chunk_count
+        blob_size = blob_info.spec.size
+
+        # Calculate the chunk_size (we overestimate by taking the ceiling)
+        chunk_size = math.ceil(blob_size/chunk_count)
+
+        # Download all chunks associated with the blob_id
+        data = []
+        for i in range(0, chunk_count):
+            chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
+            download_response = self.stub.Download(chunk_spec)
+
+            # Check there were no issues
+            # print(MessageToJson(download_response))
+            # TODO figure out issue
+            assert(download_response.error.has_occured == False)
+
+            # Store the payload
+            payload = download_response.payload
+            data.append(payload)
+
+        # Write the payload data to a recreated cat image file
+        image_filename = "../images/recreated_image.png"
+        with open(image_filename, "wb") as binary_file:
+            for i in range(0, chunk_count):
+                payload = data[i]
+                # Seek the ith chunk location and read chunk_size bytes
+                binary_file.seek(i*chunk_size)
+                binary_file.write(payload)
+
+        # Open the image and call average_image_brightness
+        im = Image.open(image_filename)
+        result = average_image_brightness(im)
+
+        # Convert result to bytes and return it in the payload
+        payload = int_to_bytes(result)
+
+        return binary_data_pb2.Response(payload=payload)
 
 
 class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):

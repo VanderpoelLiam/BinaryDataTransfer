@@ -3,6 +3,7 @@ import os
 import binary_data_pb2
 import binary_data_pb2_grpc
 import math
+import device
 from google.protobuf.json_format import MessageToJson
 
 
@@ -40,8 +41,8 @@ def run():
     chunks = []
     with open(image_filename, "rb") as binary_file:
         for i in range(0, chunk_count):
-            # Seek position i and read chunk_size bytes
-            binary_file.seek(i)
+            # Seek the ith chunk location and read chunk_size bytes
+            binary_file.seek(i*chunk_size)
             payload = binary_file.read(chunk_size)
 
             # Create the corresponding chunk
@@ -64,26 +65,25 @@ def run():
     print("\nUploaded all chunks")
 
     # Download all the chunks and ensure they match
-    print("\nDownloading chunks:\n")
-    for i in range(0, chunk_count):
-        chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
-        download_response = download_stub.GetChunk(chunk_spec)
-
-        # Check there were no issues
-        assert(download_response.error.has_occured == False)
-        print("    Downloaded chunk number %i" % i)
-
-        # Check the chunks match
-        chunk = chunks[i]
-        assert(download_response.payload == chunk.payload)
-        print("    The data matches!")
+    # print("\nDownloading chunks:\n")
+    # for i in range(0, chunk_count):
+    #     chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
+    #     download_response = download_stub.GetChunk(chunk_spec)
+    #
+    #     # Check there were no issues
+    #     assert(download_response.error.has_occured == False)
+    #     print("    Downloaded chunk number %i" % i)
+    #
+    #     # Check the chunks match
+    #     chunk = chunks[i]
+    #     assert(download_response.payload == chunk.payload)
+    #     print("    The data matches!")
 
     # Get the average image brightness
-    # TODO
-
-    print("\nNeed to implement GetAverageBrightness")
-    assert(False)
-    empty = upload_stub.GetAverageBrightness(blob_id)
+    print("GetAverageBrightness of the image")
+    command_response = upload_stub.GetAverageBrightness(blob_id)
+    avg_brightness = device.bytes_to_int(command_response.payload)
+    print("    Result: %i" % avg_brightness)
 
 
 

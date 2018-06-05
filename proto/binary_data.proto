@@ -24,7 +24,7 @@ service Upload {
 
     // Performs a pre-defined analysis on the Blob associated with BlobId. In
     // this case it gets the average brightness of an image.
-    rpc GetAverageBrightness (BlobId) returns (Empty);
+    rpc GetAverageBrightness (BlobId) returns (Response);
 }
 
 service Download {

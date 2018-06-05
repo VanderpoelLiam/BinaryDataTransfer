@@ -2,7 +2,7 @@ import json
 
 
 def read_db(filename):
-    with open(filename) as fp:
+    with open(filename, 'rb') as fp:
         data = json.load(fp)
     return data
 

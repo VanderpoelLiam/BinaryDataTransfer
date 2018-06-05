@@ -5,7 +5,8 @@ import binary_data_pb2
 import binary_data_pb2_grpc
 from google.protobuf.json_format import MessageToJson, Parse
 from resources_files import read_db, write_db
-# from resources_server import get_grpc_server
+import resources_server
+import file_server
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -18,7 +19,11 @@ def perform_measurement():
 
 
 def save_blob_info(filename, blob_info):
+    # print("Before read_db")
+    # print(filename)
+    # print(MessageToJson(blob_info))
     data = read_db(filename)
+    # print("After read_db")
     blob_id = str(blob_info.id.id)
     data[blob_id] = MessageToJson(blob_info)
     write_db(filename, data)
@@ -68,7 +73,9 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         not enough space.
         """
         blob_spec = request
+        # print("Before ValidateFileServer")
         response = self.stub.ValidateFileServer(blob_spec)
+        # print("After ValidateFileServer")
         error = response.error
 
         if error.has_occured:
@@ -80,7 +87,9 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             blob_info = binary_data_pb2.BlobInfo(id=id,
                                                  valid_until=valid_until,
                                                  spec=blob_spec)
+            # print("Before save_blob_info")
             save_blob_info(self._DATABASE_FILENAME, blob_info)
+            # print("After save_blob_info")
             return binary_data_pb2.Response(blob_info=blob_info)
 
     def UploadChunk(self, request, context):
@@ -177,18 +186,28 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
 
 
 def serve():
-    server = get_grpc_server()
+    server = resources_server.get_grpc_server()
+    stub = resources_server.get_file_server_stub()
+    server_size = math.inf
+
+    binary_data_pb2_grpc.add_FileServerServicer_to_server(
+        file_server.FileServerServicer(server_size, 'files_db.json'), server)
+
     binary_data_pb2_grpc.add_UploadServicer_to_server(
-        UploadServicer(), server)
+        UploadServicer(stub, 'device_db.json'), server)
+
+    binary_data_pb2_grpc.add_DownloadServicer_to_server(
+        DownloadServicer(stub, 'device_db.json'), server)
+
     server.add_insecure_port('[::]:50051')
     server.start()
     try:
         while True:
-            print("\nServer is ready...")
+            print("Device Ready...")
             time.sleep(_ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         server.stop(0)
 
 
 if __name__ == '__main__':
-    serve()
+  serve()

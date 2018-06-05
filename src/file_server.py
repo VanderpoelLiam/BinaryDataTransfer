@@ -1,4 +1,5 @@
 import time
+import base64
 from datetime import datetime, timedelta
 
 import binary_data_pb2
@@ -44,10 +45,10 @@ def update_expiration_time(time):
 def download_chunk(filename, chunk_spec):
     try:
         payload = read_chunk_payload(filename, chunk_spec.blob_id, chunk_spec.index)
-        print("after read chunk")
+        # print("after read chunk")
         response = binary_data_pb2.Response(payload=payload, valid_until=get_expiration_time())
     except Exception:
-        print("inside exception block")
+        # print("inside exception block")
         error = binary_data_pb2.Error(has_occured=True, description="Issue downloading chunk")
         response = binary_data_pb2.Response(error=error)
 
@@ -82,7 +83,10 @@ def save_chunk(filename, chunk):
 def write_chunk(filename, chunk):
     data = read_db(filename)
     index = chunk.index
-    payload_as_string = chunk.payload.decode("utf-8")
+    payload = chunk.payload
+    # print("before payload_as_string")
+    payload_as_string = payload.decode("latin1")
+    # print("after payload_as_string")
     blob_id = str(chunk.blob_id.id)
     try:
         data[blob_id]
@@ -96,7 +100,7 @@ def read_chunk_payload(filename, blob_id, index):
     data = read_db(filename)
     blob = data[str(blob_id.id)]
     payload_as_string = blob[str(index)]
-    payload_as_bytes = payload_as_string.encode("utf-8")
+    payload_as_bytes = payload_as_string.encode("latin1")
     return payload_as_bytes
 
 
@@ -119,7 +123,9 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         Error if there is not enough space.
         """
         blob_spec = request
+        # print("Before file server can_create_blob")
         response = can_create_blob(blob_spec, self._AVAILIBLE_SERVER_SPACE)
+        # print("After file server can_create_blob")
         return response
 
     def Save(self, request, context):

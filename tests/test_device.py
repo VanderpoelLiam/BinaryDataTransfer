@@ -20,9 +20,8 @@ class TestUploadMethods(unittest.TestCase):
         cls.context = None
         cls.device_filename = 'tests/test_store_blob_info.json'
         cls.default_filename = 'tests/test_empty.json'
-        port = '50051'
-        start_file_server(cls.server, cls.server_size, cls.default_filename, port)
-        cls.servicer = UploadServicer(get_file_server_stub(port), cls.device_filename)
+        start_file_server(cls.server, cls.server_size, cls.default_filename)
+        cls.servicer = UploadServicer(get_file_server_stub(), cls.device_filename)
         cls.blob_id = binary_data_pb2.BlobId(id=42)
         cls.chunk_index = 0
         cls.payload = b"bag of bits"
@@ -87,10 +86,9 @@ class TestDownloadMethods(unittest.TestCase):
         self.context = None
         self.default_filename = 'tests/test_empty.json'
         self.device_filename = 'tests/test_store_blob_info.json'
-        port = '50051'
-        start_file_server(self.server, self.server_size, self.default_filename, port)
-        self.upload_servicer = UploadServicer(get_file_server_stub(port), self.device_filename)
-        self.download_servicer = DownloadServicer(get_file_server_stub(port), self.device_filename)
+        start_file_server(self.server, self.server_size, self.default_filename)
+        self.upload_servicer = UploadServicer(get_file_server_stub(), self.device_filename)
+        self.download_servicer = DownloadServicer(get_file_server_stub(), self.device_filename)
         self.blob_id = binary_data_pb2.BlobId(id=42)
         self.chunk_index = 0
         self.payload = b"bag of bits"

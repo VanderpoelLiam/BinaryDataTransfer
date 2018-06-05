@@ -1,6 +1,7 @@
 import math
 import time
 from PIL import Image
+import os
 
 import binary_data_pb2
 import binary_data_pb2_grpc
@@ -13,10 +14,43 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def perform_measurement():
-    # TODO measurement should just be opening the image of the puppy
-    data = b'This is some data'
-    size = 1
-    return (data, size)
+    image_filename = '../images/puppy.jpg'
+    size = os.stat(image_filename).st_size # File size in bytes
+    chunk_count = 10
+
+    # Define spec and create a blob to store this data on the server
+    blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
+    creation_response = UploadServicer.CreateBlob(blob_spec)
+
+    # Rename relevant variables
+    blob_id = creation_response.blob_info.id
+    valid_until = creation_response.blob_info.valid_until
+
+    # Check there were no issues
+    assert(creation_response.error.has_occured == False)
+
+    # Break up the image into chunks and upload it
+    with open(image_filename, "rb") as binary_file:
+        for i in range(0, chunk_count):
+            # Seek the ith chunk location and read chunk_size bytes
+            binary_file.seek(i*chunk_size)
+            payload = binary_file.read(chunk_size)
+
+            # Create the corresponding chunk
+            chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=i,
+                                            payload=payload)
+
+            # Upload it
+            upload_response = UploadServicer.UploadChunk(chunk)
+
+            # Check there were no issues
+            assert(upload_response.error.has_occured == False)
+
+    # Returns the blob info of the uploaded blob
+    blob_info = binary_data_pb2.BlobInfo(id=blob_id,
+                                         valid_until=valid_until,
+                                         spec=blob_spec)
+    return blob_info
 
 
 def save_blob_info(filename, blob_info):
@@ -54,8 +88,10 @@ def average_image_brightness(im):
 def bytes_to_int(bytes):
     return int.from_bytes(bytes, byteorder='big', signed=False)
 
+
 def int_to_bytes(i):
     return i.to_bytes(1, byteorder='big', signed=False)
+
 
 class UploadServicer(binary_data_pb2_grpc.UploadServicer):
     """Interfaces exported by the server.
@@ -109,8 +145,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
 
     def DeleteBlob(self, request, context):
         """Deletes the Blob associated with BlobId and returns an Error object
-        containing a description of the error that occured, or an empty
-        description if the deletion was a success.
+        where the has_occured field is set to True if an error occured and False ]
+        otherwise.
         """
         try:
             request.id
@@ -119,7 +155,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         else:
             blob_id = request
             error = self.stub.Delete(blob_id)
-        return error
+
+        return binary_data_pb2.Response(error=error)
 
     def GetAverageBrightness(self, request, context):
         """Performs a pre-defined analysis on the Blob associated with BlobId. In
@@ -142,8 +179,6 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             download_response = self.stub.Download(chunk_spec)
 
             # Check there were no issues
-            # print(MessageToJson(download_response))
-            # TODO figure out issue
             assert(download_response.error.has_occured == False)
 
             # Store the payload
@@ -198,36 +233,11 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         associated BlobInfo, or an Error if something goes wrong. In this case
         the action is to get the measurement data of the device.
         """
-        # Perform an action which generates the following bytes of data
-        # and the size in bits
-        data, size = perform_measurement()
+        # Perform an action which generates a blob on the server and returns
+        # the blob_info for the created blob
+        blob_info = perform_measurement()
 
-        # max_chunk_size is likely a property of the server, but we simply fix it
-        max_chunk_size = size
-
-        # This is 1 due to above line
-        chunk_count = math.ceil(size / max_chunk_size)
-
-        # Define spec and create a blob to store this data on the server
-        blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
-        upload_servicer = UploadServicer(self.stub, self._DATABASE_FILENAME)
-        creation_response = upload_servicer.CreateBlob(blob_spec, context)
-
-        # Rename relevant variables
-        blob_id = creation_response.blob_info.id
-        valid_until = creation_response.blob_info.valid_until
-
-        # Save the data to the server
-        chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=0, payload=data)
-        upload_response = upload_servicer.UploadChunk(chunk, context)
-
-        # Create a new response that is the same as the creation_response but
-        # adds the above blob_spec to the blob_info
-        blob_info = binary_data_pb2.BlobInfo(id=blob_id,
-                                             valid_until=valid_until,
-                                             spec=blob_spec)
-        response = binary_data_pb2.Response(valid_until=valid_until,
-                                            error=creation_response.error,
+        response = binary_data_pb2.Response(valid_until=blob_info.valid_until,
                                             blob_info=blob_info)
 
         return response

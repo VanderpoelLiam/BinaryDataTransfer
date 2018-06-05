@@ -17,10 +17,9 @@ service Upload {
     // Returns an Error if it fails for any reason.
     rpc UploadChunk (Chunk) returns (Response);
 
-    // Deletes the Blob associated with BlobId and returns an Error object
-    // containing a description of the error that occured, or an empty
-    // description if the deletion was a success.
-    rpc DeleteBlob (BlobId) returns (Error);
+    // Deletes the Blob associated with BlobId. Returns an Error if it fails
+    // for any reason.
+    rpc DeleteBlob (BlobId) returns (Response);
 
     // Performs a pre-defined analysis on the Blob associated with BlobId. In
     // this case it gets the average brightness of an image.

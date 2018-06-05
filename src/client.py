@@ -65,19 +65,19 @@ def run():
     print("\nUploaded all chunks")
 
     # Download all the chunks and ensure they match
-    # print("\nDownloading chunks:\n")
-    # for i in range(0, chunk_count):
-    #     chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
-    #     download_response = download_stub.GetChunk(chunk_spec)
-    #
-    #     # Check there were no issues
-    #     assert(download_response.error.has_occured == False)
-    #     print("    Downloaded chunk number %i" % i)
-    #
-    #     # Check the chunks match
-    #     chunk = chunks[i]
-    #     assert(download_response.payload == chunk.payload)
-    #     print("    The data matches!")
+    print("\nDownloading chunks:\n")
+    for i in range(0, chunk_count):
+        chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
+        download_response = download_stub.GetChunk(chunk_spec)
+
+        # Check there were no issues
+        assert(download_response.error.has_occured == False)
+        print("    Downloaded chunk number %i" % i)
+
+        # Check the chunks match
+        chunk = chunks[i]
+        assert(download_response.payload == chunk.payload)
+        print("    The data matches!")
 
     # Get the average image brightness
     print("GetAverageBrightness of the image")
@@ -85,8 +85,55 @@ def run():
     avg_brightness = device.bytes_to_int(command_response.payload)
     print("    Result: %i" % avg_brightness)
 
+    # Delete the blob
+    print("\nDeleting the blob")
+    delete_response = upload_stub.DeleteBlob(blob_id)
+    assert(delete_response.error.has_occured == False)
+    print("\nBlob deleted")
 
+    # Check we get an error if we try and download a chunk
+    chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=0)
+    download_response = download_stub.GetChunk(chunk_spec)
+    assert(download_response.error.has_occured == True)
+    print("\nWe get an error if we try and download a chunk from this deleted blob")
 
+    # Check we get an error if we try and get the average image brightness
+    print("GetAverageBrightness of the image")
+    command_response = upload_stub.GetAverageBrightness(blob_id)
+    assert(command_response.error.has_occured == True)
+    print("\nWe get an error if we try and get the average image brightness of this deleted blob")
+
+    # Check we do not get an error if we try delete the blob again
+    delete_response = upload_stub.DeleteBlob(blob_id)
+    assert(delete_response.error.has_occured == True)
+    print("\nWe do not get an error if we try and delete the blob again")
+
+    # Now we perform a measurement which generates a blob
+    print("\nPerforming measurement")
+    measurement_response = download_stub.GetMeasurementData(binary_data_pb2.Empty())
+    assert(measurement_response.error.has_occured == False)
+    print("\nNo issues performing the measurement")
+
+    # Get the BlobInfo and the BlobId
+    blob_info = measurement_response.blob_info
+    blob_id = blob_info.id
+
+    # Check the blob info from creating the blob matches the info returned by
+    # GetBlobInfo
+    assert(blob_info == download_stub.GetBlobInfo(blob_id))
+    print("\nNo issues retrieving the measurement blob info from the device")
+
+    # Get the average image brightness for our measurement image
+    print("GetAverageBrightness of the measurement image")
+    command_response = upload_stub.GetAverageBrightness(blob_id)
+    avg_brightness = device.bytes_to_int(command_response.payload)
+    print("    Result: %i" % avg_brightness)
+
+    # Finally we can delete the blob
+    print("\nDeleting the measurement blob")
+    delete_response = upload_stub.DeleteBlob(blob_id)
+    assert(delete_response.error.has_occured == False)
+    print("\nBlob deleted")
 
 if __name__ == '__main__':
   run()

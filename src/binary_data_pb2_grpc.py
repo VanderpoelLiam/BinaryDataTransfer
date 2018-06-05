@@ -27,7 +27,7 @@ class UploadStub(object):
     self.DeleteBlob = channel.unary_unary(
         '/binaryData.Upload/DeleteBlob',
         request_serializer=binary__data__pb2.BlobId.SerializeToString,
-        response_deserializer=binary__data__pb2.Error.FromString,
+        response_deserializer=binary__data__pb2.Response.FromString,
         )
     self.GetAverageBrightness = channel.unary_unary(
         '/binaryData.Upload/GetAverageBrightness',
@@ -58,9 +58,8 @@ class UploadServicer(object):
     raise NotImplementedError('Method not implemented!')
 
   def DeleteBlob(self, request, context):
-    """Deletes the Blob associated with BlobId and returns an Error object
-    containing a description of the error that occured, or an empty
-    description if the deletion was a success.
+    """Deletes the Blob associated with BlobId. Returns an Error if it fails
+    for any reason.
     """
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
@@ -90,7 +89,7 @@ def add_UploadServicer_to_server(servicer, server):
       'DeleteBlob': grpc.unary_unary_rpc_method_handler(
           servicer.DeleteBlob,
           request_deserializer=binary__data__pb2.BlobId.FromString,
-          response_serializer=binary__data__pb2.Error.SerializeToString,
+          response_serializer=binary__data__pb2.Response.SerializeToString,
       ),
       'GetAverageBrightness': grpc.unary_unary_rpc_method_handler(
           servicer.GetAverageBrightness,

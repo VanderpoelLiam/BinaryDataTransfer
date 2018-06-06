@@ -213,14 +213,9 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             payload = download_response.payload
             data.append(payload)
 
-        # Figure out the correct filename
-        image_filename = "images/recreated_image.png"
-        try:
-            with open(image_filename, "wb") as binary_file:
-                binary_file.seek(0)
-        except FileNotFoundError:
-            image_filename = "../images/recreated_image.png"
-
+        # Set the filename
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        image_filename = os.path.join(dir_path, r"../images/recreated_image.png")
 
         # Write the payload data to a recreated cat image file
         chunk_size = get_chunk_size(blob_info.spec)
@@ -277,14 +272,9 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         associated BlobInfo, or an Error if something goes wrong. In this case
         the action is to get the measurement data of the device.
         """
-        image_filename = 'images/puppy.jpg'
-
-        # Figure out the correct filename
-        try:
-            with open(image_filename, "wb") as binary_file:
-                pass
-        except FileNotFoundError:
-            image_filename = '../images/puppy.jpg'
+        # Set the filename
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        image_filename = os.path.join(dir_path, r"../images/puppy.png")
 
         upload_response = upload_image(image_filename, self.stub,
                                                    self._DATABASE_FILENAME)

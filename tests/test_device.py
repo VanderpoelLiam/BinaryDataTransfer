@@ -214,7 +214,7 @@ class TestDownloadMethods(unittest.TestCase):
         blob_info = response.blob_info
         blob_spec = blob_info.spec
         blob_id = blob_info.id
-        image_filename = 'images/puppy.jpg'
+        image_filename = 'images/puppy.png'
         chunk_size = device.get_chunk_size(blob_spec)
         chunk_count = blob_spec.chunk_count
         expected_chunks = device.create_chunks(image_filename, chunk_count, chunk_size, blob_id)

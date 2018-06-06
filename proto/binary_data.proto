@@ -34,7 +34,7 @@ service Download {
 
 
     // Gets the BlobInfo assiciated with the given BlobID
-    rpc GetBlobInfo (BlobId) returns (BlobInfo);
+    rpc GetBlobInfo (BlobId) returns (Response);
 
 
     // Performs an Action which generates a Blob on the server. Returns the

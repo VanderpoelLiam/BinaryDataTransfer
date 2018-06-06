@@ -13,14 +13,10 @@ def run():
     upload_stub = binary_data_pb2_grpc.UploadStub(channel)
     download_stub = binary_data_pb2_grpc.DownloadStub(channel)
 
-    # Get info on the data we are going to work with
-    image_filename = '../images/cat.png'
-    blob_size = os.stat(image_filename).st_size # File size in bytes
-    chunk_count = 10
-    chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
+    image_filename = "../images/cat.png"
 
     # Create the Blob to store the cat image
-    blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
+    blob_spec = device.create_blob_spec(image_filename)
     create_blob_response = upload_stub.CreateBlob(blob_spec)
 
     # Get the BlobInfo and the BlobId
@@ -33,24 +29,16 @@ def run():
 
     # Check the blob info from creating the blob matches the info returned by
     # GetBlobInfo
-    assert(blob_info == download_stub.GetBlobInfo(blob_id))
-    print("\nNo issues retrieving the blob info from the device")
+    info_response = download_stub.GetBlobInfo(blob_id)
+    assert(blob_info == info_response.blob_info)
+    assert(info_response.error.has_occured == False)
+    print("\nCreated blob info matches that stored on the device")
 
     # Break up the image into chunks
     print("\nBreaking up the image into chunks")
-    chunks = []
-    with open(image_filename, "rb") as binary_file:
-        for i in range(0, chunk_count):
-            # Seek the ith chunk location and read chunk_size bytes
-            binary_file.seek(i*chunk_size)
-            payload = binary_file.read(chunk_size)
-
-            # Create the corresponding chunk
-            chunk = binary_data_pb2.Chunk(blob_id=blob_id, index=i,
-                                          payload=payload)
-
-            # Add it to the chunk array
-            chunks.append(chunk)
+    chunk_count = blob_spec.chunk_count
+    chunk_size = device.get_chunk_size(blob_spec)
+    chunks = device.create_chunks(image_filename, chunk_count, chunk_size, blob_id)
 
     # Upload the chunks to the server
     print("\nUploading chunks:\n")
@@ -80,7 +68,7 @@ def run():
         print("    The data matches!")
 
     # Get the average image brightness
-    print("GetAverageBrightness of the image")
+    print("\nGetAverageBrightness of the image")
     command_response = upload_stub.GetAverageBrightness(blob_id)
     avg_brightness = device.bytes_to_int(command_response.payload)
     print("    Result: %i" % avg_brightness)
@@ -98,14 +86,14 @@ def run():
     print("\nWe get an error if we try and download a chunk from this deleted blob")
 
     # Check we get an error if we try and get the average image brightness
-    print("GetAverageBrightness of the image")
+    print("\nAttempting to GetAverageBrightness of the image")
     command_response = upload_stub.GetAverageBrightness(blob_id)
     assert(command_response.error.has_occured == True)
     print("\nWe get an error if we try and get the average image brightness of this deleted blob")
 
     # Check we do not get an error if we try delete the blob again
     delete_response = upload_stub.DeleteBlob(blob_id)
-    assert(delete_response.error.has_occured == True)
+    assert(delete_response.error.has_occured == False)
     print("\nWe do not get an error if we try and delete the blob again")
 
     # Now we perform a measurement which generates a blob
@@ -120,11 +108,13 @@ def run():
 
     # Check the blob info from creating the blob matches the info returned by
     # GetBlobInfo
-    assert(blob_info == download_stub.GetBlobInfo(blob_id))
-    print("\nNo issues retrieving the measurement blob info from the device")
+    info_response = download_stub.GetBlobInfo(blob_id)
+    assert(blob_info == info_response.blob_info)
+    assert(info_response.error.has_occured == False)
+    print("\nMeasurement blob info matches that stored on the device")
 
     # Get the average image brightness for our measurement image
-    print("GetAverageBrightness of the measurement image")
+    print("\nGetAverageBrightness of the measurement image")
     command_response = upload_stub.GetAverageBrightness(blob_id)
     avg_brightness = device.bytes_to_int(command_response.payload)
     print("    Result: %i" % avg_brightness)

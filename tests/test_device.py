@@ -1,6 +1,7 @@
 import unittest
 import math
 import os
+import sys
 
 from google.protobuf.json_format import MessageToJson
 
@@ -12,20 +13,21 @@ from src.device import UploadServicer
 from src.resources_files import wipe_json_file, read_db
 from src.resources_server import start_file_server, get_file_server_stub, \
     stop_server, get_grpc_server
+from PIL import Image
 
 
 class TestUploadMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server = get_grpc_server()
-        cls.server_size = 100
+        cls.server_size = 1500000
         cls.blob_spec = binary_data_pb2.BlobSpec(size=10, chunk_count=2)
         cls.context = None
         cls.device_filename = 'tests/test_store_blob_info.json'
         cls.default_filename = 'tests/test_empty.json'
         start_file_server(cls.server, cls.server_size, cls.default_filename)
-        cls.servicer = UploadServicer(get_file_server_stub(),
-                                      cls.device_filename)
+        cls.stub = get_file_server_stub()
+        cls.servicer = UploadServicer(cls.stub, cls.device_filename)
         cls.blob_id = binary_data_pb2.BlobId(id=42)
         cls.chunk_index = 0
         cls.payload = b"bag of bits"
@@ -46,11 +48,10 @@ class TestUploadMethods(unittest.TestCase):
         wipe_json_file(self.device_filename)
 
     def test_CreateBlob(self):
-        # TODO fix issue with below response line
         response = self.servicer.CreateBlob(self.blob_spec, self.context)
         blob_info = response.blob_info
         self.assertEqual(blob_info.valid_until, file_server.get_expiration_time())
-        id = self.servicer._get_current_blob_id().id
+        id = device._get_current_blob_id().id
         self.assertEqual(blob_info.id.id, id - 1)
 
     def test_CreateBlob_error(self):
@@ -61,12 +62,16 @@ class TestUploadMethods(unittest.TestCase):
 
     def test_UploadChunk(self):
         response = self.servicer.UploadChunk(self.chunk, self.context)
-        self.assertEqual(response.error.description, "")
+        self.assertFalse(response.error.has_occured)
         expiration_time = file_server.get_expiration_time()
         updated_expiration_time = file_server.update_expiration_time(expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
 
     def test_DeleteBlob(self):
+        response = self.servicer.CreateBlob(self.blob_spec, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.servicer.UploadChunk(self.chunk, self.context)
+        self.assertFalse(response.error.has_occured)
         response = self.servicer.DeleteBlob(self.blob_id, self.context)
         self.assertFalse(response.error.has_occured)
 
@@ -79,26 +84,41 @@ class TestUploadMethods(unittest.TestCase):
         response = self.servicer.DeleteBlob(self.blob_spec, self.context)
         self.assertTrue(response.error.has_occured)
 
-    def test_GetAverageBrightness(self):
-        # TODO write a proper tests that uploads an image first
+    def test_DeleteBlob_deletes_device_blob_info(self):
+        response = self.servicer.UploadChunk(self.chunk, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.servicer.DeleteBlob(self.blob_id, self.context)
+        self.assertFalse(response.error.has_occured)
+        self.assertRaises(KeyError, device.read_blob_info, self.device_filename, self.blob_id)
 
-        # self.server_size = math.inf
-        # blob_id = binary_data_pb2.BlobId(id=0) # THIS IS A HACK
-        # response = self.servicer.GetAverageBrightness(blob_id, self.context)
-        # payload = response.payload
-        # result = device.bytes_to_int(payload)
-        # image_filename = 'images/cat.png'
-        # catIm = Image.open(image_filename)
-        # expected_result = device.average_image_brightness(catIm)
-        # self.assertEqual(result, expected_result)
-        return
+
+    def test_GetAverageBrightness(self):
+        # Upload image to server
+        image_filename = 'images/cat.png'
+        upload_response = device.upload_image(image_filename, self.stub, self.device_filename)
+        self.assertFalse(upload_response.error.has_occured)
+
+        # Compare results
+        blob_id = upload_response.blob_info.id
+        response = self.servicer.GetAverageBrightness(blob_id, self.context)
+        payload = response.payload
+        result = device.bytes_to_int(payload)
+
+        catIm = Image.open(image_filename)
+        expected_result = device.average_image_brightness(catIm)
+        self.assertEqual(result, expected_result)
+
+    def test_GetAverageBrightness_on_non_existant_blob(self):
+        blob_id = binary_data_pb2.BlobId(id=-1)
+        response = self.servicer.GetAverageBrightness(blob_id, self.context)
+        self.assertTrue(response.error.has_occured)
 
 
 class TestDownloadMethods(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.server = get_grpc_server()
-        cls.server_size = 100
+        cls.server_size = math.inf
         cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         cls.context = None
         cls.default_filename = 'tests/test_empty.json'
@@ -160,43 +180,77 @@ class TestDownloadMethods(unittest.TestCase):
     def test_GetBlobInfo(self):
         expected_blob_info = self._create_blob()
         id = expected_blob_info.id
-        actual_blob_info = self.download_servicer.GetBlobInfo(id, self.context)
-        print(MessageToJson(expected_blob_info))
-        print(MessageToJson(actual_blob_info))
+        response = self.download_servicer.GetBlobInfo(id, self.context)
+        actual_blob_info = response.blob_info
         self.assertEqual(expected_blob_info.id, actual_blob_info.id)
         self.assertEqual(expected_blob_info.valid_until, actual_blob_info.valid_until)
         self.assertEqual(expected_blob_info.spec.size, actual_blob_info.spec.size)
         self.assertEqual(expected_blob_info.spec.chunk_count, actual_blob_info.spec.chunk_count)
 
+    def test_test_GetBlobInfo_of_non_existant_blob(self):
+        blob_id = binary_data_pb2.BlobId(id=-1)
+        response = self.download_servicer.GetBlobInfo(blob_id, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_test_GetBlobInfo_of_deleted_blob(self):
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
+        self.assertFalse(response.error.has_occured)
+        blob_id = response.blob_info.id
+        response = self.upload_servicer.DeleteBlob(blob_id, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.download_servicer.GetBlobInfo(blob_id, self.context)
+        self.assertTrue(response.error.has_occured)
+
     def test_GetMeasurementData_responds(self):
-        # response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
-        # blob_info = response.blob_info
-        # data, size = device.perform_measurement()
-        # self.assertEqual(blob_info.spec.size, size)
-        # self.assertEqual(blob_info.spec.chunk_count, 1)
-        # self.assertFalse(response.error.has_occured)
-        # self.assertEqual(response.valid_until, file_server.get_expiration_time())
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
+        self.assertFalse(response.error.has_occured)
+        blob_info = response.blob_info
+        blob_id = blob_info.id
+        info_response = self.download_servicer.GetBlobInfo(blob_id, self.context)
+        self.assertEqual(blob_info, info_response.blob_info)
+
+    def test_GetMeasurementData_saves_to_server(self):
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
+        blob_info = response.blob_info
+        blob_spec = blob_info.spec
+        blob_id = blob_info.id
+        image_filename = 'images/puppy.jpg'
+        chunk_size = device.get_chunk_size(blob_spec)
+        chunk_count = blob_spec.chunk_count
+        expected_chunks = device.create_chunks(image_filename, chunk_count, chunk_size, blob_id)
+
+        # Read data from file server and compare payloads
+        for i in range(0, chunk_count):
+            chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
+            download_response = self.download_servicer.GetChunk(chunk_spec, self.context)
+
+            # Check there were no issues
+            self.assertFalse(download_response.error.has_occured)
+
+            # Check the chunks payload match
+            payload = download_response.payload
+            expected_payload = expected_chunks[i].payload
+            self.assertEqual(payload, expected_payload)
+
+    def test_GetMeasurementData_creating_blob_error(self):
         # TODO
         return
 
-    def test_GetMeasurementData_saves_to_server(self):
-        # measurement_response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
-        # data, size = device.perform_measurement()
-        # id = measurement_response.blob_info.id
-        # chunk_spec = binary_data_pb2.ChunkSpec(blob_id=id, index=0)
-        # chunk_response = self.download_servicer.GetChunk(chunk_spec, self.context)
-        # self.assertEqual(data, chunk_response.payload)
-        # # TODO:
-        return
+    def test_GetAverageBrightness_on_measurement_blob(self):
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
+        self.assertFalse(response.error.has_occured)
+        blob_id = response.blob_info.id
+        response = self.upload_servicer.GetAverageBrightness(blob_id, self.context)
+        self.assertFalse(response.error.has_occured)
 
-    def test_GetMeasurementData_stores_blob_info(self):
-        # measurement_response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
-        # id = measurement_response.blob_info.id
-        # blob_info = measurement_response.blob_info
-        # expected = device.read_blob_info(self.device_filename, id)
-        # self.assertEqual(blob_info, expected)
-        # # TODO:
-        return
+    def test_GetAverageBrightness_on_deleted_measurement_blob(self):
+        response = self.download_servicer.GetMeasurementData(binary_data_pb2.Empty(), self.context)
+        self.assertFalse(response.error.has_occured)
+        blob_id = response.blob_info.id
+        response = self.upload_servicer.DeleteBlob(blob_id, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.upload_servicer.GetAverageBrightness(blob_id, self.context)
+        self.assertTrue(response.error.has_occured)
 
 
 class TestHelperMethods(unittest.TestCase):
@@ -243,29 +297,45 @@ class TestHelperMethods(unittest.TestCase):
         blob_info = device.read_blob_info(self.default_filename, self.blob_id)
         self.assertEqual(blob_info, self.blob_info)
 
-    def test_upload_image(self):
-        image_filename = 'images/puppy.jpg'
-        size = os.stat(image_filename).st_size  # File size in bytes
+    def test_create_chunks(self):
+        filename = 'images/cat.png'
+        blob_size = os.stat(filename).st_size # File size in bytes
         chunk_count = 10
-        chunk_size = math.ceil(size / chunk_count)
+        chunk_size = math.ceil(blob_size/chunk_count)
+        blob_id = binary_data_pb2.BlobId(id=42)
+        chunks = device.create_chunks(filename, chunk_count, chunk_size, blob_id)
+        self.assertEqual(len(chunks), chunk_count)
+        sample_chunk = chunks[2]
+        sample_payload = sample_chunk.payload
+        self.assertEqual(sample_chunk.blob_id, blob_id)
 
-        # Define spec and create a blob to store this data on the server
-        blob_spec = binary_data_pb2.BlobSpec(size=size, chunk_count=chunk_count)
-        creation_response = self.upload_servicer.CreateBlob(blob_spec, None)
+    def test_create_blob_spec(self):
+        # Get info on the data we are going to work with
+        image_filename = 'images/cat.png'
+        blob_size = os.stat(image_filename).st_size # File size in bytes
+        chunk_count = 10
+        chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
 
-        blob_id = creation_response.blob_info.id
+        # Create the Blob to store the cat image
+        expected_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
 
-        upload_response = device.upload_image(self.upload_servicer,
-                                              image_filename, blob_id,
-                                              chunk_count, chunk_size)
-        self.assertFalse(upload_response.error.has_occured)
+        blob_spec = device.create_blob_spec(image_filename)
+        self.assertEqual(expected_blob_spec, blob_spec)
 
-    def test_upload_image_error(self):
-        # TODO
-        return
+    def test_get_chunk_size(self):
+        blob_size = 10101
+        chunk_count = 10
+        chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
+        blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
+        self.assertEqual(chunk_size, device.get_chunk_size(blob_spec))
 
-    def test_perform_measurement(self):
-        blob_info = device.perform_measurement()
-        blob_id = blob_info.id
-        self.assertEqual(blob_info, self.download_servicer.GetBlobInfo(blob_id))
+    def test_delete_blob_info(self):
+        device.save_blob_info(self.default_filename, self.blob_info)
+        device.delete_blob_info(self.default_filename, self.blob_id)
+        self.assertRaises(KeyError, device.read_blob_info, self.default_filename, self.blob_id)
 
+    def test_delete_blob_info_non_existant_blob_id(self):
+        try:
+            device.delete_blob_info(self.default_filename, self.blob_id)
+        except KeyError:
+            self.fail("device.delete_blob_info() raised KeyError unexpectedly!")

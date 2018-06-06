@@ -11,7 +11,6 @@ _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 def can_create_blob(blob_spec, available_server_space):
-    # print("inside can create blob")
     if have_space(blob_spec.size, available_server_space):
         expiration_time = get_expiration_time()
         return binary_data_pb2.Response(valid_until=expiration_time)
@@ -50,7 +49,7 @@ def download_chunk(filename, chunk_spec):
                                      chunk_spec.index)
         response = binary_data_pb2.Response(payload=payload,
                                             valid_until=get_expiration_time())
-    except Exception:
+    except Exception as e:
         error = binary_data_pb2.Error(has_occured=True,
                                       description="Issue downloading chunk")
         response = binary_data_pb2.Response(error=error)
@@ -87,9 +86,7 @@ def write_chunk(filename, chunk):
     data = read_db(filename)
     index = chunk.index
     payload = chunk.payload
-    # print("before payload_as_string")
     payload_as_string = payload.decode("latin1")
-    # print("after payload_as_string")
     blob_id = str(chunk.blob_id.id)
     try:
         data[blob_id]
@@ -125,7 +122,6 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         and returns the ExpirationTime until which the Blob is valid. Returns an
         Error if there is not enough space.
         """
-        # print("inside ValidateFileServer")
         blob_spec = request
         response = can_create_blob(blob_spec, self._AVAILIBLE_SERVER_SPACE)
         return response

@@ -5,13 +5,20 @@ import binary_data_pb2
 import binary_data_pb2_grpc
 import device
 import grpc
+import time
 
 
 def run():
     # Set up the client to communicate with the device
     channel = grpc.insecure_channel('localhost:50051')
-    upload_stub = binary_data_pb2_grpc.UploadStub(channel)
-    download_stub = binary_data_pb2_grpc.DownloadStub(channel)
+    try:
+        # Wait 10 seconds for the server to start
+        grpc.channel_ready_future(channel).result(timeout=10)
+    except grpc.FutureTimeoutError:
+        sys.exit('Error connecting to server')
+    else:
+        upload_stub = binary_data_pb2_grpc.UploadStub(channel)
+        download_stub = binary_data_pb2_grpc.DownloadStub(channel)
 
     image_filename = "../images/cat.png"
 
@@ -49,6 +56,7 @@ def run():
         # Check there were no issues
         assert(upload_response.error.has_occured == False)
         print("    Uploading chunk number %i" % i)
+        time.sleep(1)
 
     print("\nUploaded all chunks")
 
@@ -61,6 +69,7 @@ def run():
         # Check there were no issues
         assert(download_response.error.has_occured == False)
         print("    Downloaded chunk number %i" % i)
+        time.sleep(1)
 
         # Check the chunks match
         chunk = chunks[i]

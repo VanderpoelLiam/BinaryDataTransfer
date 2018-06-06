@@ -15,17 +15,18 @@ class TestAcessingDatabase(unittest.TestCase):
         cls.index = 2
         cls.test_path = "tests/"
         cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
-                                           index=cls.index,
-                                           payload=cls.payload)
+                                          index=cls.index,
+                                          payload=cls.payload)
         cls.chunk1 = binary_data_pb2.Chunk(blob_id=cls.blob_id,
-                                            index=cls.index + 1,
-                                            payload=cls.payload)
+                                           index=cls.index + 1,
+                                           payload=cls.payload)
 
     def test_read_chunk_payload(self):
         # Setup
         filename = self.test_path + 'test_read_chunk_payload.json'
         # Test
-        actual = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        actual = file_server.read_chunk_payload(filename, self.blob_id,
+                                                self.index)
         self.assertIsInstance(actual, bytes)
         self.assertEqual(actual, self.payload)
 
@@ -33,25 +34,30 @@ class TestAcessingDatabase(unittest.TestCase):
         # Setup
         filename = self.test_path + 'test_empty.json'
         # Test
-        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename,
+                          self.blob_id, self.index)
 
     def test_read_missing_index(self):
         # Setup
         filename = self.test_path + 'test_read_chunk_payload.json'
         # Test
-        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index - 1)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename,
+                          self.blob_id, self.index - 1)
 
     def test_write_chunk(self):
         # Setup
         filename = self.test_path + 'test_empty.json'
         # Test
         file_server.write_chunk(filename, self.chunk)
-        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id,
+                                                        self.index)
         self.assertEqual(actual_payload, self.payload)
         file_server.write_chunk(filename, self.chunk1)
-        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id,
+                                                        self.index)
         self.assertEqual(actual_payload, self.payload)
-        actual_payload = file_server.read_chunk_payload(filename, self.blob_id, self.index + 1)
+        actual_payload = file_server.read_chunk_payload(filename, self.blob_id,
+                                                        self.index + 1)
         self.assertEqual(actual_payload, self.payload)
         wipe_json_file(filename)
 
@@ -61,14 +67,16 @@ class TestAcessingDatabase(unittest.TestCase):
         file_server.write_chunk(filename, self.chunk)
         # Test
         file_server.remove_blob(filename, self.blob_id)
-        self.assertRaises(KeyError, file_server.read_chunk_payload, filename, self.blob_id, self.index)
+        self.assertRaises(KeyError, file_server.read_chunk_payload, filename,
+                          self.blob_id, self.index)
         wipe_json_file(filename)
 
     def test_remove_blob_non_existant_blob_id(self):
         # Setup
         filename = self.test_path + 'test_empty.json'
         # Test
-        self.assertRaises(file_server.BlobNotFoundException, file_server.remove_blob, filename, self.blob_id)
+        self.assertRaises(file_server.BlobNotFoundException,
+                          file_server.remove_blob, filename, self.blob_id)
         wipe_json_file(filename)
 
 
@@ -84,18 +92,20 @@ class TestServerMethods(unittest.TestCase):
         cls.chunk_index = 0
         cls.payload = b"bag of bits"
         cls.chunk_spec = binary_data_pb2.ChunkSpec(blob_id=cls.blob_id,
-                                                    index=cls.chunk_index)
+                                                   index=cls.chunk_index)
         cls.chunk = binary_data_pb2.Chunk(blob_id=cls.blob_id,
-                                           index=cls.chunk_index,
-                                           payload=cls.payload)
+                                          index=cls.chunk_index,
+                                          payload=cls.payload)
 
     def test_ValidateFileServer_payload(self):
         response = self.server.ValidateFileServer(self.blob_spec, self.context)
-        self.assertEqual(response.valid_until, file_server.get_expiration_time())
+        self.assertEqual(response.valid_until,
+                         file_server.get_expiration_time())
 
     def test_ValidateFileServer_error(self):
         blob_size = self.server_size * 2
-        error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=1)
+        error_blob_spec = binary_data_pb2.BlobSpec(size=blob_size,
+                                                   chunk_count=1)
         response = self.server.ValidateFileServer(error_blob_spec, self.context)
         self.assertTrue(response.error.has_occured)
 
@@ -103,7 +113,8 @@ class TestServerMethods(unittest.TestCase):
         response = self.server.Save(self.chunk, self.context)
         self.assertFalse(response.error.has_occured)
         expiration_time = file_server.get_expiration_time()
-        updated_expiration_time = file_server.update_expiration_time(expiration_time)
+        updated_expiration_time = file_server.update_expiration_time(
+            expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
 
     def test_Delete(self):
@@ -123,7 +134,8 @@ class TestServerMethods(unittest.TestCase):
     def test_Dowload(self):
         self.server.Save(self.chunk, self.context)
         response = self.server.Download(self.chunk_spec, self.context)
-        self.assertEqual(response.valid_until, file_server.get_expiration_time())
+        self.assertEqual(response.valid_until,
+                         file_server.get_expiration_time())
         self.assertEqual(response.payload, self.payload)
 
     def test_Dowload_chunk_not_exist(self):

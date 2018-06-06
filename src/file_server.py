@@ -151,21 +151,3 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         blob_id = request
         error = delete_blob(self._DATABASE_FILENAME, blob_id)
         return error
-
-
-def serve():
-    server = get_grpc_server()
-    binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        FileServerServicer(), server)
-    server.add_insecure_port('[::]:50051')
-    server.start()
-    try:
-        while True:
-            print("\nServer is ready...")
-            time.sleep(_ONE_DAY_IN_SECONDS)
-    except KeyboardInterrupt:
-        server.stop(0)
-
-
-if __name__ == '__main__':
-    serve()

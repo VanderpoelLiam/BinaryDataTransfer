@@ -1,6 +1,7 @@
 import unittest
 
-from src.resources_files import read_db, write_db, remove_by_key_db, wipe_json_file
+from src.resources_files import read_db, write_db, remove_by_key_db, \
+    wipe_json_file
 
 
 def test_read_expected():
@@ -18,7 +19,8 @@ class TestBasicMethods(unittest.TestCase):
         self.default_filename = self.test_path + 'test_empty.json'
 
     def test_read_db(self):
-        self.assertEqual(read_db(self.test_path + "test_read.json"), test_read_expected())
+        self.assertEqual(read_db(self.test_path + "test_read.json"),
+                         test_read_expected())
 
     def test_write_db(self):
         # Setup
@@ -43,5 +45,6 @@ class TestBasicMethods(unittest.TestCase):
         wipe_json_file(self.default_filename)
 
     def test_remove_by_key_db_non_existant_key(self):
-        self.assertRaises(KeyError, remove_by_key_db, self.default_filename, "invalid_key")
+        self.assertRaises(KeyError, remove_by_key_db, self.default_filename,
+                          "invalid_key")
         wipe_json_file(self.default_filename)

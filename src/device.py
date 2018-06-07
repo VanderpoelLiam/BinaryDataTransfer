@@ -5,8 +5,8 @@ import time
 import binary_data_pb2
 import binary_data_pb2_grpc
 import file_server
-import resources_server
 import resources_files
+import resources_server
 from PIL import Image
 from google.protobuf.json_format import MessageToJson, Parse
 
@@ -17,15 +17,16 @@ _COUNTER = 0
 def get_chunk_size(blob_spec):
     blob_size = blob_spec.size
     chunk_count = blob_spec.chunk_count
-    chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
+    chunk_size = math.ceil(blob_size / chunk_count)  # Overestimate chunk_size
     return chunk_size
 
 
 def create_blob_spec(filename):
-    blob_size = os.stat(filename).st_size # File size in bytes
+    blob_size = os.stat(filename).st_size  # File size in bytes
     chunk_count = 10
-    chunk_size = math.ceil(blob_size/chunk_count)  # Overestimate chunk_size
-    blob_spec = binary_data_pb2.BlobSpec(size=blob_size, chunk_count=chunk_count)
+    chunk_size = math.ceil(blob_size / chunk_count)  # Overestimate chunk_size
+    blob_spec = binary_data_pb2.BlobSpec(size=blob_size,
+                                         chunk_count=chunk_count)
     return blob_spec
 
 
@@ -34,7 +35,7 @@ def create_chunks(filename, chunk_count, chunk_size, blob_id):
     with open(filename, "rb") as binary_file:
         for i in range(0, chunk_count):
             # Seek the ith chunk location and read chunk_size bytes
-            binary_file.seek(i*chunk_size)
+            binary_file.seek(i * chunk_size)
             payload = binary_file.read(chunk_size)
 
             # Create the corresponding chunk
@@ -108,18 +109,21 @@ def upload_image(image_filename, stub, database_filename):
     # Save chunks to the server
     for i in range(0, chunk_count):
         chunk = chunks[i]
-        upload_response = resources_server.client_caller(stub.Save, chunk, "Save", False)
+        upload_response = resources_server.client_caller(stub.Save, chunk,
+                                                         "Save", False)
         # upload_response = stub.Save(chunk)
 
         if upload_response.error.has_occured:
             return binary_data_pb2.Response(error=upload_response.error)
 
-
-    return binary_data_pb2.Response(error=creation_response.error, blob_info=blob_info)
+    return binary_data_pb2.Response(error=creation_response.error,
+                                    blob_info=blob_info)
 
 
 def _create_blob(stub, filename, blob_spec):
-    response = resources_server.client_caller(stub.ValidateFileServer, blob_spec, "ValidateFileServer", False)
+    response = resources_server.client_caller(stub.ValidateFileServer,
+                                              blob_spec, "ValidateFileServer",
+                                              False)
     # response = stub.ValidateFileServer(blob_spec)
     error = response.error
 
@@ -168,7 +172,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         Returns an Error if there if it fails for any reason.
         """
         chunk = request
-        response = resources_server.client_caller(self.stub.Save, chunk, "Save", False)
+        response = resources_server.client_caller(self.stub.Save, chunk, "Save",
+                                                  False)
         # response = self.stub.Save(chunk)
         return response
 
@@ -177,15 +182,10 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         where the has_occured field is set to True if an error occured and False ]
         otherwise.
         """
-        try:
-            request.id
-        except Exception:
-            error = binary_data_pb2.Error(has_occured=True, description="Request was not of type BlobId")
-        else:
-            blob_id = request
-            error = resources_server.client_caller(self.stub.Delete, blob_id, "Delete", False)
-            # error = self.stub.Delete(blob_id)
-            delete_blob_info(self._DATABASE_FILENAME, blob_id)
+        blob_id = request
+        error = resources_server.client_caller(self.stub.Delete, blob_id,
+                                               "Delete", False)
+        delete_blob_info(self._DATABASE_FILENAME, blob_id)
 
         return binary_data_pb2.Response(error=error)
 
@@ -193,6 +193,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Performs a pre-defined analysis on the Blob associated with BlobId. In
         this case it gets the average brightness of an image.
         """
+
         blob_id = request
 
         # Get the chunk_count and blob_size
@@ -208,7 +209,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         chunk_count = blob_info.spec.chunk_count
         for i in range(0, chunk_count):
             chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
-            download_response = resources_server.client_caller(self.stub.Download, chunk_spec, "Download", False)
+            download_response = resources_server.client_caller(
+                self.stub.Download, chunk_spec, "Download", False)
             # download_response = self.stub.Download(chunk_spec)
 
             if download_response.error.has_occured:
@@ -220,7 +222,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
 
         # Set the filename
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        image_filename = os.path.join(dir_path, r"../images/recreated_image.png")
+        image_filename = os.path.join(dir_path,
+                                      r"../images/recreated_image.png")
 
         # Write the payload data to a recreated cat image file
         chunk_size = get_chunk_size(blob_info.spec)
@@ -229,7 +232,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             for i in range(0, chunk_count):
                 payload = data[i]
                 # Seek the ith chunk location and read chunk_size bytes
-                binary_file.seek(i*chunk_size)
+                binary_file.seek(i * chunk_size)
                 binary_file.write(payload)
 
         # Open the image and call average_image_brightness
@@ -256,14 +259,17 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         the associated Payload and ExpirationTime in the response. Returns an
         Error if it fails for any reason.
         """
+
         chunk_spec = request
-        response = resources_server.client_caller(self.stub.Download, chunk_spec, "Download", False)
+        response = resources_server.client_caller(self.stub.Download,
+                                                  chunk_spec, "Download", False)
         # response = self.stub.Download(chunk_spec)
         return response
 
     def GetBlobInfo(self, request, context):
         """Gets the BlobInfo assiciated with the given BlobID
         """
+
         blob_id = request
         try:
             blob_info = read_blob_info(self._DATABASE_FILENAME, blob_id)
@@ -278,14 +284,14 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         associated BlobInfo, or an Error if something goes wrong. In this case
         the action is to get the measurement data of the device.
         """
+
         # Set the filename
         dir_path = os.path.dirname(os.path.realpath(__file__))
         image_filename = os.path.join(dir_path, r"../images/puppy.png")
 
         upload_response = upload_image(image_filename, self.stub,
-                                                   self._DATABASE_FILENAME)
+                                       self._DATABASE_FILENAME)
         return upload_response
-
 
 
 def serve():
@@ -294,7 +300,8 @@ def serve():
     server_size = math.inf
 
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        file_server.FileServerServicer(server_size, resources_files.FILES_DATABASE), server)
+        file_server.FileServerServicer(server_size,
+                                       resources_files.FILES_DATABASE), server)
 
     binary_data_pb2_grpc.add_UploadServicer_to_server(
         UploadServicer(stub, resources_files.DEVICE_DATABASE), server)
@@ -313,4 +320,4 @@ def serve():
 
 
 if __name__ == '__main__':
-  serve()
+    serve()

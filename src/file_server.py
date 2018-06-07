@@ -1,11 +1,9 @@
-import time
 from datetime import datetime, timedelta
 
 import binary_data_pb2
 import binary_data_pb2_grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 from resources_files import read_db, write_db, remove_by_key_db
-
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 

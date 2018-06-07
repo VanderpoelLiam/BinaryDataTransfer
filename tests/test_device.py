@@ -5,7 +5,7 @@ import unittest
 from PIL import Image
 from google.protobuf.json_format import MessageToJson
 
-from src import binary_data_pb2
+import src.binary_data_pb2 as binary_data_pb2
 from src import device
 from src import file_server
 from src.device import DownloadServicer
@@ -20,7 +20,7 @@ class TestUploadMethods(unittest.TestCase):
     def setUpClass(cls):
         cls.server = get_grpc_server()
         cls.server_size = 1500000
-        cls.blob_spec = binary_data_pb2.BlobSpec(size=10, chunk_count=2)
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
         cls.context = None
         cls.device_filename = 'tests/test_store_blob_info.json'
         cls.default_filename = 'tests/test_empty.json'
@@ -46,9 +46,18 @@ class TestUploadMethods(unittest.TestCase):
         wipe_json_file(self.default_filename)
         wipe_json_file(self.device_filename)
 
+    def test_DeleteBlob(self):
+        response = self.servicer.CreateBlob(self.blob_spec, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.servicer.UploadChunk(self.chunk, self.context)
+        self.assertFalse(response.error.has_occured)
+        response = self.servicer.DeleteBlob(self.blob_id, self.context)
+        self.assertFalse(response.error.has_occured)
+
     def test_CreateBlob(self):
         response = self.servicer.CreateBlob(self.blob_spec, self.context)
         blob_info = response.blob_info
+        self.assertFalse(response.error.has_occured)
         self.assertEqual(blob_info.valid_until,
                          file_server.get_expiration_time())
         id = device._get_current_blob_id().id
@@ -69,22 +78,10 @@ class TestUploadMethods(unittest.TestCase):
             expiration_time)
         self.assertEqual(response.valid_until, updated_expiration_time)
 
-    def test_DeleteBlob(self):
-        response = self.servicer.CreateBlob(self.blob_spec, self.context)
-        self.assertFalse(response.error.has_occured)
-        response = self.servicer.UploadChunk(self.chunk, self.context)
-        self.assertFalse(response.error.has_occured)
-        response = self.servicer.DeleteBlob(self.blob_id, self.context)
-        self.assertFalse(response.error.has_occured)
-
     def test_DeleteBlob_non_existant_id(self):
         blob_id = binary_data_pb2.BlobId(id=38302)
         response = self.servicer.DeleteBlob(blob_id, self.context)
         self.assertFalse(response.error.has_occured)
-
-    def test_DeleteBlob_wrong_input(self):
-        response = self.servicer.DeleteBlob(self.blob_spec, self.context)
-        self.assertTrue(response.error.has_occured)
 
     def test_DeleteBlob_deletes_device_blob_info(self):
         response = self.servicer.UploadChunk(self.chunk, self.context)
@@ -115,6 +112,22 @@ class TestUploadMethods(unittest.TestCase):
         blob_id = binary_data_pb2.BlobId(id=-1)
         response = self.servicer.GetAverageBrightness(blob_id, self.context)
         self.assertTrue(response.error.has_occured)
+
+    # def test_CreateBlob_wrong_input_type(self):
+    #     response = self.servicer.CreateBlob(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
+    #
+    # def test_UploadChunk_wrong_input_type(self):
+    #     response = self.servicer.UploadChunk(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
+    #
+    # def test_DeleteBlob_wrong_input_type(self):
+    #     response = self.servicer.DeleteBlob(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
+    #
+    # def test_GetAverageBrightness_wrong_input_type(self):
+    #     response = self.servicer.CreateBlob(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
 
 
 class TestDownloadMethods(unittest.TestCase):
@@ -174,6 +187,8 @@ class TestDownloadMethods(unittest.TestCase):
         chunk_spec = binary_data_pb2.ChunkSpec(blob_id=id,
                                                index=self.chunk_index)
         response = self.download_servicer.GetChunk(chunk_spec, self.context)
+
+        self.assertFalse(response.error.has_occured)
 
         # Check the data matches
         self.assertEqual(response.payload, self.payload)
@@ -267,6 +282,18 @@ class TestDownloadMethods(unittest.TestCase):
         response = self.upload_servicer.GetAverageBrightness(blob_id,
                                                              self.context)
         self.assertTrue(response.error.has_occured)
+
+    # def test_GetChunk_wrong_input_type(self):
+    #     response = self.download_servicer.GetChunk(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
+    #
+    # def test_GetBlobInfo_wrong_input_type(self):
+    #     response = self.download_servicer.GetChunk(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
+    #
+    # def test_GetMeasurementData_wrong_input_type(self):
+    #     response = self.download_servicer.GetMeasurementData(None, self.context)
+    #     self.assertTrue(response.error.has_occured)
 
 
 class TestHelperMethods(unittest.TestCase):

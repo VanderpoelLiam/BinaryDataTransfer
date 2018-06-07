@@ -28,7 +28,7 @@ def get_grpc_server():
     return grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
 
-def client_caller(method, arg, method_name):
+def client_caller(method, arg, method_name, attempt_reconnection=True):
     # This ensures robustsness to connection losses
     while True:
         try:
@@ -40,10 +40,14 @@ def client_caller(method, arg, method_name):
             if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
                 sys.exit('\nCould not reconnect to the server before the deadline was exceeded')
             elif e.code() == grpc.StatusCode.INTERNAL:
-                print('\n%s failed unexpectedly, it will be called again' % method_name)
+                print('\n%s failed unexpectedly' % method_name)
             elif e.code() == grpc.StatusCode.UNAVAILABLE:
-                print('\nServer is unavailible, attempting to reconnect')
+                print('\nServer is unavailible')
             else:
                 sys.exit('\n{0} failed with {1}: {2}'.format(method_name, e.code(), e.details()))
         else:
             return response
+
+        if not attempt_reconnection:
+            sys.exit('\nNot attempting to reconnect to server')
+            break

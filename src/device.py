@@ -108,7 +108,8 @@ def upload_image(image_filename, stub, database_filename):
     # Save chunks to the server
     for i in range(0, chunk_count):
         chunk = chunks[i]
-        upload_response = stub.Save(chunk)
+        upload_response = resources_server.client_caller(stub.Save, chunk, "Save", False)
+        # upload_response = stub.Save(chunk)
 
         if upload_response.error.has_occured:
             return binary_data_pb2.Response(error=upload_response.error)
@@ -118,7 +119,8 @@ def upload_image(image_filename, stub, database_filename):
 
 
 def _create_blob(stub, filename, blob_spec):
-    response = stub.ValidateFileServer(blob_spec)
+    response = resources_server.client_caller(stub.ValidateFileServer, blob_spec, "ValidateFileServer", False)
+    # response = stub.ValidateFileServer(blob_spec)
     error = response.error
 
     if error.has_occured:
@@ -166,8 +168,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         Returns an Error if there if it fails for any reason.
         """
         chunk = request
-        # response = resources_server.client_caller(self.stub.Save, chunk, "Save")
-        response = self.stub.Save(chunk)
+        response = resources_server.client_caller(self.stub.Save, chunk, "Save", False)
+        # response = self.stub.Save(chunk)
         return response
 
     def DeleteBlob(self, request, context):
@@ -181,7 +183,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             error = binary_data_pb2.Error(has_occured=True, description="Request was not of type BlobId")
         else:
             blob_id = request
-            error = self.stub.Delete(blob_id)
+            error = resources_server.client_caller(self.stub.Delete, blob_id, "Delete", False)
+            # error = self.stub.Delete(blob_id)
             delete_blob_info(self._DATABASE_FILENAME, blob_id)
 
         return binary_data_pb2.Response(error=error)
@@ -205,7 +208,8 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         chunk_count = blob_info.spec.chunk_count
         for i in range(0, chunk_count):
             chunk_spec = binary_data_pb2.ChunkSpec(blob_id=blob_id, index=i)
-            download_response = self.stub.Download(chunk_spec)
+            download_response = resources_server.client_caller(self.stub.Download, chunk_spec, "Download", False)
+            # download_response = self.stub.Download(chunk_spec)
 
             if download_response.error.has_occured:
                 return binary_data_pb2.Response(error=download_response.error)
@@ -253,7 +257,8 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         Error if it fails for any reason.
         """
         chunk_spec = request
-        response = self.stub.Download(chunk_spec)
+        response = resources_server.client_caller(self.stub.Download, chunk_spec, "Download", False)
+        # response = self.stub.Download(chunk_spec)
         return response
 
     def GetBlobInfo(self, request, context):

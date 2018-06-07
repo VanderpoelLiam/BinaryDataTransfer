@@ -11,3 +11,6 @@ Navigate to the `BinaryDataTransfer/` directory. To run all tests the `tests/` d
 To generate the classes associated with the .proto files in the `protos/` directory, navigate to the `BinaryDataTransfer/` directory and enter the following in the terminal:
 
 `python -m grpc_tools.protoc -I./proto --python_out=./src --grpc_python_out=./src ./proto/binary_data.proto`
+
+## Dependencies
+The code was written for Python 3 and requires the following modules: nose, protobuf, pillow, grpc, grpcio, grpcio-tools. For more information on using grpc with python check out the [grpc Python quickstart](https://grpc.io/docs/quickstart/python.html)

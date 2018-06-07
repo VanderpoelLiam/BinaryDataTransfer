@@ -20,7 +20,7 @@ class TestUploadMethods(unittest.TestCase):
     def setUpClass(cls):
         cls.server = get_grpc_server()
         cls.server_size = 1500000
-        cls.blob_spec = binary_data_pb2.BlobSpec(size=1, chunk_count=1)
+        cls.blob_spec = binary_data_pb2.BlobSpec(size=2, chunk_count=1)
         cls.context = None
         cls.device_filename = 'tests/test_store_blob_info.json'
         cls.default_filename = 'tests/test_empty.json'
@@ -56,16 +56,13 @@ class TestUploadMethods(unittest.TestCase):
 
     # Failing unexpectedly on ubuntu
     def test_CreateBlob(self):
-        try:
-            response = self.servicer.CreateBlob(self.blob_spec, self.context)
-            blob_info = response.blob_info
-            self.assertFalse(response.error.has_occured)
-            self.assertEqual(blob_info.valid_until,
-                             file_server.get_expiration_time())
-            id = device._get_current_blob_id().id
-            self.assertEqual(blob_info.id.id, id - 1)
-        except Exception:
-            pass
+        response = self.servicer.CreateBlob(self.blob_spec, self.context)
+        blob_info = response.blob_info
+        self.assertFalse(response.error.has_occured)
+        self.assertEqual(blob_info.valid_until,
+                         file_server.get_expiration_time())
+        id = device._get_current_blob_id().id
+        self.assertEqual(blob_info.id.id, id - 1)
 
     def test_CreateBlob_error(self):
         blob_size = self.server_size * 2

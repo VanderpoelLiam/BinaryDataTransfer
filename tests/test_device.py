@@ -113,21 +113,21 @@ class TestUploadMethods(unittest.TestCase):
         response = self.servicer.GetAverageBrightness(blob_id, self.context)
         self.assertTrue(response.error.has_occured)
 
-    # def test_CreateBlob_wrong_input_type(self):
-    #     response = self.servicer.CreateBlob(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
-    #
-    # def test_UploadChunk_wrong_input_type(self):
-    #     response = self.servicer.UploadChunk(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
-    #
-    # def test_DeleteBlob_wrong_input_type(self):
-    #     response = self.servicer.DeleteBlob(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
-    #
-    # def test_GetAverageBrightness_wrong_input_type(self):
-    #     response = self.servicer.CreateBlob(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
+    def test_CreateBlob_wrong_input_type(self):
+        response = self.servicer.CreateBlob(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_UploadChunk_wrong_input_type(self):
+        response = self.servicer.UploadChunk(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_DeleteBlob_wrong_input_type(self):
+        response = self.servicer.DeleteBlob(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_GetAverageBrightness_wrong_input_type(self):
+        response = self.servicer.CreateBlob(None, self.context)
+        self.assertTrue(response.error.has_occured)
 
 
 class TestDownloadMethods(unittest.TestCase):
@@ -283,17 +283,17 @@ class TestDownloadMethods(unittest.TestCase):
                                                              self.context)
         self.assertTrue(response.error.has_occured)
 
-    # def test_GetChunk_wrong_input_type(self):
-    #     response = self.download_servicer.GetChunk(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
-    #
-    # def test_GetBlobInfo_wrong_input_type(self):
-    #     response = self.download_servicer.GetChunk(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
-    #
-    # def test_GetMeasurementData_wrong_input_type(self):
-    #     response = self.download_servicer.GetMeasurementData(None, self.context)
-    #     self.assertTrue(response.error.has_occured)
+    def test_GetChunk_wrong_input_type(self):
+        response = self.download_servicer.GetChunk(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_GetBlobInfo_wrong_input_type(self):
+        response = self.download_servicer.GetChunk(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_GetMeasurementData_wrong_input_type(self):
+        response = self.download_servicer.GetMeasurementData(None, self.context)
+        self.assertTrue(response.error.has_occured)
 
 
 class TestHelperMethods(unittest.TestCase):

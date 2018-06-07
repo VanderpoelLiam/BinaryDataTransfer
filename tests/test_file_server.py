@@ -148,6 +148,22 @@ class TestServerMethods(unittest.TestCase):
         response = self.server.Download(self.chunk_spec, self.context)
         self.assertTrue(response.error.has_occured)
 
+    def test_ValidateFileServer_wrong_input_type(self):
+        response = self.server.ValidateFileServer(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_Save_wrong_input_type(self):
+        response = self.server.Save(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_Download_wrong_input_type(self):
+        response = self.server.Download(None, self.context)
+        self.assertTrue(response.error.has_occured)
+
+    def test_Delete_wrong_input_type(self):
+        error = self.server.Delete(None, self.context)
+        self.assertTrue(error.has_occured)
+
     def setUp(self):
         wipe_json_file(self.default_filename)
 

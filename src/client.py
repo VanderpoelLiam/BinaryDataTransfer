@@ -9,6 +9,16 @@ import resources_server
 
 
 def run():
+    image_filename = "../images/cat.png"
+
+    # Create the Blob to store the cat image
+    blob_spec = device.create_blob_spec(image_filename)
+
+    temp = binary_data_pb2.Chunk()
+    temp.CopyFrom(blob_spec)
+
+    assert (False)
+
     # Set up the client to communicate with the device
     channel = grpc.insecure_channel('localhost:50051')
 

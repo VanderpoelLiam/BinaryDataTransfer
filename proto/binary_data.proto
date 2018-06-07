@@ -60,8 +60,7 @@ service FileServer {
     rpc Download (ChunkSpec) returns (Response);
 
     // Deletes the Blob associated with BlobId and returns an Error object
-    // containing a description of the error that occured, or an empty
-    // description if the deletion was a success.
+    // that indicates if an Error occurred during deletion
     rpc Delete (BlobId) returns (Error);
 }
 

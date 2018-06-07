@@ -245,8 +245,7 @@ class FileServerServicer(object):
 
     def Delete(self, request, context):
         """Deletes the Blob associated with BlobId and returns an Error object
-        containing a description of the error that occured, or an empty
-        description if the deletion was a success.
+        that indicates if an Error occurred during deletion
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

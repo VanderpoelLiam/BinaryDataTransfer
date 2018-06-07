@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import binary_data_pb2
 import binary_data_pb2_grpc
+import resources_server
 from google.protobuf.timestamp_pb2 import Timestamp
 from resources_files import read_db, write_db, remove_by_key_db
 
@@ -120,6 +121,11 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         and returns the ExpirationTime until which the Blob is valid. Returns an
         Error if there is not enough space.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobSpec)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         blob_spec = request
         response = can_create_blob(blob_spec, self._AVAILIBLE_SERVER_SPACE)
         return response
@@ -128,6 +134,11 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         """Saves a Chunk to the server and returns the updated ExpirationTime
         Returns an Error if there if it fails for any reason.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.Chunk)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         chunk = request
         response = save_chunk(self._DATABASE_FILENAME, chunk)
         return response
@@ -137,15 +148,24 @@ class FileServerServicer(binary_data_pb2_grpc.FileServerServicer):
         the associated Payload and ExpirationTime in the response. Returns an
         Error if it fails for any reason.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.ChunkSpec)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         chunk_spec = request
         response = download_chunk(self._DATABASE_FILENAME, chunk_spec)
         return response
 
     def Delete(self, request, context):
         """Deletes the Blob associated with BlobId and returns an Error object
-        containing a description of the error that occured, or an empty
-        description if the deletion was a success.
+        that indicates if an Error occurred during deletion
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobId)
+        if type_check_response.error.has_occured:
+            return type_check_response.error
+
         blob_id = request
         error = delete_blob(self._DATABASE_FILENAME, blob_id)
         return error

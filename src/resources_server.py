@@ -1,6 +1,7 @@
 import sys
 from concurrent import futures
 
+import binary_data_pb2
 import binary_data_pb2_grpc
 import file_server
 import grpc
@@ -55,3 +56,15 @@ def client_caller(method, arg, method_name, attempt_reconnection=True):
         if not attempt_reconnection:
             sys.exit('\nNot attempting to reconnect to server')
             break
+
+
+def type_check(actual_object, expected_type):
+    temp = expected_type()
+    try:
+        temp.CopyFrom(actual_object)
+    except TypeError:
+        error = binary_data_pb2.Error(has_occured=True,
+                                      description="Wrong input type")
+        return binary_data_pb2.Response(error=error)
+    else:
+        return binary_data_pb2.Response()

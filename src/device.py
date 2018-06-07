@@ -164,6 +164,11 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         and returns the BlobInfo to access the Blob. Returns an Error if there is
         not enough space.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobSpec)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         blob_spec = request
         return _create_blob(self.stub, self._DATABASE_FILENAME, blob_spec)
 
@@ -171,6 +176,11 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Uploads a Chunk to the server and returns the updated ExpirationTime
         Returns an Error if there if it fails for any reason.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.Chunk)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         chunk = request
         response = resources_server.client_caller(self.stub.Save, chunk, "Save",
                                                   False)
@@ -182,6 +192,11 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         where the has_occured field is set to True if an error occured and False ]
         otherwise.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobId)
+        if type_check_response.error.has_occured:
+            return type_check_response
+
         blob_id = request
         error = resources_server.client_caller(self.stub.Delete, blob_id,
                                                "Delete", False)
@@ -193,6 +208,10 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         """Performs a pre-defined analysis on the Blob associated with BlobId. In
         this case it gets the average brightness of an image.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobId)
+        if type_check_response.error.has_occured:
+            return type_check_response
 
         blob_id = request
 
@@ -232,7 +251,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
             for i in range(0, chunk_count):
                 payload = data[i]
                 # Seek the ith chunk location and read chunk_size bytes
-                binary_file.seek(i * chunk_size)
+                binary_file.seek(int(i * chunk_size))
                 binary_file.write(payload)
 
         # Open the image and call average_image_brightness
@@ -259,6 +278,10 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         the associated Payload and ExpirationTime in the response. Returns an
         Error if it fails for any reason.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.ChunkSpec)
+        if type_check_response.error.has_occured:
+            return type_check_response
 
         chunk_spec = request
         response = resources_server.client_caller(self.stub.Download,
@@ -269,6 +292,10 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
     def GetBlobInfo(self, request, context):
         """Gets the BlobInfo assiciated with the given BlobID
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.BlobId)
+        if type_check_response.error.has_occured:
+            return type_check_response
 
         blob_id = request
         try:
@@ -284,6 +311,10 @@ class DownloadServicer(binary_data_pb2_grpc.DownloadServicer):
         associated BlobInfo, or an Error if something goes wrong. In this case
         the action is to get the measurement data of the device.
         """
+        type_check_response = resources_server.type_check(request,
+                                                          binary_data_pb2.Empty)
+        if type_check_response.error.has_occured:
+            return type_check_response
 
         # Set the filename
         dir_path = os.path.dirname(os.path.realpath(__file__))

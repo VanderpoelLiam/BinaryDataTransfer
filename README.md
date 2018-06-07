@@ -8,6 +8,6 @@ To run the demonstration open two terminals to the `src/` directory. In one ente
 Navigate to the `BinaryDataTransfer/` directory. To run all tests the `tests/` directory, enter `nosetests` into the terminal. To run only the tests in the `test_device.py` module, enter `nosetests tests/test_device.py`.
 
 ## Generating classes from the Protocol Buffers
-To generate the classes associated with the .proto files in the `protos/` directory, navigate to the "BinaryDataTransfer/" directory and enter the following in the terminal:
+To generate the classes associated with the .proto files in the `protos/` directory, navigate to the `BinaryDataTransfer/` directory and enter the following in the terminal:
 
 `python -m grpc_tools.protoc -I./proto --python_out=./src --grpc_python_out=./src ./proto/binary_data.proto`

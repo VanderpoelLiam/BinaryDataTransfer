@@ -6,9 +6,9 @@ import binary_data_pb2
 import binary_data_pb2_grpc
 import file_server
 import resources_server
+import resources_files
 from PIL import Image
 from google.protobuf.json_format import MessageToJson, Parse
-from resources_files import read_db, write_db
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 _COUNTER = 0
@@ -47,10 +47,10 @@ def create_chunks(filename, chunk_count, chunk_size, blob_id):
 
 
 def save_blob_info(filename, blob_info):
-    data = read_db(filename)
+    data = resources_files.read_db(filename)
     blob_id = str(blob_info.id.id)
     data[blob_id] = MessageToJson(blob_info)
-    write_db(filename, data)
+    resources_files.write_db(filename, data)
 
 
 def delete_blob_info(filename, blob_id):
@@ -62,7 +62,7 @@ def delete_blob_info(filename, blob_id):
 
 
 def read_blob_info(filename, blob_id):
-    data = read_db(filename)
+    data = resources_files.read_db(filename)
     key = str(blob_id.id)
     temp = data[key]
     blob_info = Parse(data[key], binary_data_pb2.BlobInfo())
@@ -166,6 +166,7 @@ class UploadServicer(binary_data_pb2_grpc.UploadServicer):
         Returns an Error if there if it fails for any reason.
         """
         chunk = request
+        # response = resources_server.client_caller(self.stub.Save, chunk, "Save")
         response = self.stub.Save(chunk)
         return response
 
@@ -288,13 +289,13 @@ def serve():
     server_size = math.inf
 
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
-        file_server.FileServerServicer(server_size, 'files_db.json'), server)
+        file_server.FileServerServicer(server_size, resources_files.FILES_DATABASE), server)
 
     binary_data_pb2_grpc.add_UploadServicer_to_server(
-        UploadServicer(stub, 'device_db.json'), server)
+        UploadServicer(stub, resources_files.DEVICE_DATABASE), server)
 
     binary_data_pb2_grpc.add_DownloadServicer_to_server(
-        DownloadServicer(stub, 'device_db.json'), server)
+        DownloadServicer(stub, resources_files.DEVICE_DATABASE), server)
 
     server.add_insecure_port('[::]:50051')
     server.start()

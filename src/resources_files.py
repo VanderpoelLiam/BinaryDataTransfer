@@ -1,5 +1,8 @@
 import json
 
+FILES_DATABASE = 'files_db.json'
+DEVICE_DATABASE = 'device_db.json'
+
 
 def read_db(filename):
     with open(filename, 'rb') as fp:

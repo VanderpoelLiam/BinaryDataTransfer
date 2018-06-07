@@ -3,7 +3,9 @@ from concurrent import futures
 import binary_data_pb2_grpc
 import file_server
 import grpc
+import sys
 
+_TIMEOUT_IN_SECONDS = 10
 
 def start_file_server(server, server_size, filename):
     binary_data_pb2_grpc.add_FileServerServicer_to_server(
@@ -24,3 +26,24 @@ def get_file_server_stub():
 
 def get_grpc_server():
     return grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+
+
+def client_caller(method, arg, method_name):
+    # This ensures robustsness to connection losses
+    while True:
+        try:
+            response = method(arg, timeout=_TIMEOUT_IN_SECONDS)
+        except KeyboardInterrupt:
+            sys.exit('')
+            break
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                sys.exit('\nCould not reconnect to the server before the deadline was exceeded')
+            elif e.code() == grpc.StatusCode.INTERNAL:
+                print('\n%s failed unexpectedly, it will be called again' % method_name)
+            elif e.code() == grpc.StatusCode.UNAVAILABLE:
+                print('\nServer is unavailible, attempting to reconnect')
+            else:
+                sys.exit('\n{0} failed with {1}: {2}'.format(method_name, e.code(), e.details()))
+        else:
+            return response
